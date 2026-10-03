@@ -1,0 +1,278 @@
+/* IZZY installer v1.0.21 — restore normal visual scale, compact only spacing, not typography. */
+@media (min-width: 721px){
+  /* Keep the premium shell at 95% of the available viewport. */
+  .installer{height:95dvh!important;max-height:95dvh!important}
+  .installer-head{min-height:88px!important;padding:13px 20px!important;margin-bottom:10px!important}
+  .installer-brand{gap:16px!important}
+  .installer-brand img{width:124px!important;height:66px!important}
+  .installer-brand p{font-size:11px!important;margin-bottom:3px!important}
+  .installer-brand strong{font-size:27px!important;line-height:1.05!important}
+  .installer-brand small{font-size:12.5px!important;margin-top:4px!important}
+  .installer-badge{min-height:40px!important;padding:0 16px!important;font-size:11.5px!important}
+
+  .side{overflow:hidden!important;padding:18px 16px 14px!important}
+  .side-progress{margin-bottom:15px!important}
+  .side-item{padding:9px 10px!important}
+  .side-item span strong{font-size:12.5px!important}
+  .side-item span small{font-size:10px!important}
+
+  .main{overflow:hidden!important}
+  .step-panel{overflow:hidden!important}
+  .content-head{padding:17px 24px 8px!important}
+  .content-head h1{font-size:36px!important;line-height:1.04!important}
+  .content-head p{font-size:12px!important;line-height:1.35!important;margin-top:4px!important}
+  .content-head .eyebrow{font-size:10px!important}
+  .content-step-pill{min-height:30px!important;margin-top:16px!important;font-size:10px!important}
+  .content-progress{margin:0 24px 10px!important;height:4px!important}
+
+  /* Internal scrolling exists only when the content really exceeds the available height. */
+  .scroll{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:auto!important;padding:0 24px 12px!important}
+
+  .step-guide{margin:0 0 10px!important;padding:9px 11px!important}
+  .step-guide-icon{width:30px!important;height:30px!important}
+  .step-guide strong{font-size:12px!important}
+  .step-guide small{font-size:10.5px!important}
+
+  .detected-site-url{margin:0 0 10px!important;padding:9px 11px!important;grid-template-columns:34px minmax(0,1fr)!important}
+  .detected-site-url-icon{width:30px!important;height:30px!important}
+  .detected-site-url small{font-size:9.5px!important}
+  .detected-site-url strong{font-size:12.5px!important}
+  .detected-site-url p{font-size:10.5px!important;line-height:1.3!important}
+
+  /* STEP 1 requested layout:
+     row 1 = Servidor + Puerto
+     row 2 = Base de datos + Usuario
+     row 3 = Contraseña full width */
+  body.installer-step-1 .form-grid.three{
+    display:grid!important;
+    grid-template-columns:repeat(12,minmax(0,1fr))!important;
+    gap:10px 14px!important;
+  }
+  body.installer-step-1 .form-grid.three > :nth-child(1){grid-column:span 8!important}
+  body.installer-step-1 .form-grid.three > :nth-child(2){grid-column:span 4!important}
+  body.installer-step-1 .form-grid.three > :nth-child(3){grid-column:span 6!important}
+  body.installer-step-1 .form-grid.three > :nth-child(4){grid-column:span 6!important}
+  body.installer-step-1 .form-grid.three > :nth-child(5),
+  body.installer-step-1 .form-grid.three > :nth-child(n+6){grid-column:1/-1!important}
+
+  .form-grid{row-gap:11px!important;column-gap:14px!important}
+  .field-label{min-height:19px!important;font-size:12.5px!important;line-height:1.25!important}
+  .field>input,.field>select{margin-top:5px!important}
+  input,select{min-height:42px!important;padding:8px 12px!important;border-radius:11px!important;font-size:13.5px!important}
+  .password-wrap{margin-top:5px!important}
+  .password-toggle{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
+  .field small{margin-top:3px!important;font-size:10.5px!important;line-height:1.3!important}
+  .db-create-notice{padding:9px 11px!important;margin-top:0!important}
+
+  /* Do not shrink steps 2 and 3 to a fake browser zoom. */
+  body.installer-step-2 .form-grid,
+  body.installer-step-3 .form-grid{gap:11px 14px!important}
+  body.installer-step-2 .field-label,
+  body.installer-step-3 .field-label{font-size:12.5px!important;min-height:19px!important}
+  body.installer-step-2 input,
+  body.installer-step-2 select,
+  body.installer-step-3 input,
+  body.installer-step-3 select{min-height:42px!important;padding:8px 12px!important;font-size:13.5px!important}
+  body.installer-step-2 .field small,
+  body.installer-step-3 .field small{font-size:10.5px!important;line-height:1.3!important;margin-top:3px!important}
+
+  /* Footer stays visible; primary action belongs on the RIGHT, never centered. */
+  .footer{
+    min-height:58px!important;
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    align-items:center!important;
+    padding:8px 22px calc(8px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .footer > span,
+  .footer > .button.secondary,
+  .footer > .installer-back{grid-column:1!important;justify-self:start!important}
+  .footer-right{
+    grid-column:2!important;
+    justify-self:end!important;
+    margin-left:auto!important;
+    width:auto!important;
+    display:flex!important;
+    justify-content:flex-end!important;
+    align-items:center!important;
+  }
+  .footer-right .button,
+  .footer-right button{min-width:148px!important;width:auto!important}
+}
+
+/* Medium screens: preserve the requested pairs until there is genuinely no room. */
+@media (max-width: 900px) and (min-width: 721px){
+  body.installer-step-1 .form-grid.three > :nth-child(1){grid-column:span 7!important}
+  body.installer-step-1 .form-grid.three > :nth-child(2){grid-column:span 5!important}
+  body.installer-step-1 .form-grid.three > :nth-child(3),
+  body.installer-step-1 .form-grid.three > :nth-child(4){grid-column:span 6!important}
+}
+
+/* Mobile/tablet portrait: natural one-column flow, no horizontal overflow. */
+@media (max-width: 720px){
+  html,body{overflow-x:hidden!important}
+  body{overflow-y:auto!important}
+  .page{height:auto!important;min-height:100dvh!important;overflow:visible!important;padding:7px!important}
+  .installer{height:auto!important;max-height:none!important;min-height:0!important;display:flex!important;flex-direction:column!important;overflow:visible!important}
+  .installer-head,.side,.main,.step-panel,.scroll{height:auto!important;max-height:none!important;overflow:visible!important}
+  .side{display:block!important}
+  .side-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  body.installer-step-1 .form-grid.three,
+  .form-grid,.method-grid,.review,.test-row{grid-template-columns:1fr!important}
+  body.installer-step-1 .form-grid.three > :nth-child(n),
+  .form-grid > *,.method-grid > *,.review > *,.test-row > *{grid-column:1/-1!important}
+  .footer{position:sticky!important;bottom:0!important;display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;padding:9px 10px calc(9px + env(safe-area-inset-bottom,0px))!important}
+  .footer > span,.footer > .installer-back{grid-column:1!important;justify-self:start!important}
+  .footer-right{grid-column:2!important;justify-self:end!important;width:auto!important;margin-left:auto!important}
+  .footer-right button,.footer-right .button{width:auto!important;min-width:132px!important}
+}
+
+/* Overlay anchors: never accumulate offsets between reloads. */
+.swal2-container{position:fixed!important;inset:0!important;margin:0!important;transform:none!important;display:grid!important;place-items:center!important}
+.swal2-popup{margin:0!important;inset:auto!important;transform:none!important}
+.notify-stack{position:fixed!important;top:18px!important;right:18px!important;bottom:auto!important;left:auto!important;margin:0!important;transform:none!important}
+
+/* =========================================================
+   IZZY installer v1.0.22
+   Restore the approved ES MULTISERVICIOS visual scale.
+   No fake zoom/compression. Desktop shell matches the
+   reference proportions while remaining fully responsive.
+   ========================================================= */
+@media (min-width: 901px){
+  html,body{height:100%!important;overflow:hidden!important}
+  .page{
+    height:100dvh!important;
+    min-height:0!important;
+    padding:2.5dvh 16px!important;
+    display:grid!important;
+    place-items:center!important;
+    overflow:hidden!important;
+  }
+  .installer{
+    width:min(1220px,calc(100vw - 32px))!important;
+    height:95dvh!important;
+    max-height:95dvh!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    grid-template-columns:214px minmax(0,1fr)!important;
+    grid-template-rows:90px minmax(0,1fr)!important;
+    gap:12px 14px!important;
+    overflow:hidden!important;
+  }
+  .installer-head{
+    min-height:90px!important;
+    height:90px!important;
+    padding:13px 20px!important;
+    border-radius:18px!important;
+  }
+  .installer-brand{gap:16px!important}
+  .installer-brand img{width:96px!important;height:56px!important}
+  .installer-brand p{font-size:11px!important;line-height:1.2!important}
+  .installer-brand strong{font-size:24px!important;line-height:1.08!important}
+  .installer-brand small{font-size:12.5px!important;line-height:1.25!important}
+  .installer-badge{min-height:40px!important;padding:0 16px!important;font-size:12px!important}
+
+  .side{
+    padding:20px 16px 14px!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+  }
+  .side-progress{margin:0 0 16px!important}
+  .side-progress strong{font-size:14px!important;line-height:1.25!important}
+  .side-progress small{font-size:11px!important;margin-top:4px!important}
+  .side-progress>div{height:5px!important;margin-top:10px!important}
+  .side-list{gap:7px!important}
+  .side-item{grid-template-columns:34px minmax(0,1fr)!important;gap:10px!important;padding:10px 9px!important;border-radius:11px!important}
+  .side-item b{width:31px!important;height:31px!important;font-size:11.5px!important}
+  .side-item span strong{font-size:12.5px!important;line-height:1.2!important}
+  .side-item span small{font-size:10px!important;line-height:1.25!important}
+  .side-foot{font-size:9.5px!important;line-height:1.5!important;padding-top:12px!important}
+
+  .main{min-height:0!important;height:100%!important;border-radius:18px!important;overflow:hidden!important}
+  .step-panel{min-height:0!important;height:100%!important;overflow:hidden!important}
+  .content-head{padding:18px 24px 9px!important;gap:16px!important}
+  .content-head .eyebrow{font-size:10.5px!important;line-height:1.2!important}
+  .content-head h1{font-size:38px!important;line-height:1.03!important;letter-spacing:-.025em!important}
+  .content-head p{font-size:12.5px!important;line-height:1.35!important;margin-top:5px!important}
+  .content-step-pill{min-height:31px!important;margin-top:16px!important;padding:0 11px!important;font-size:10px!important}
+  .content-progress{height:4px!important;margin:0 24px 11px!important}
+  .scroll{padding:0 24px 12px!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:auto!important}
+
+  .step-guide{margin-bottom:11px!important;padding:10px 12px!important;grid-template-columns:34px minmax(0,1fr)!important}
+  .step-guide-icon{width:31px!important;height:31px!important;font-size:12px!important}
+  .step-guide strong{font-size:12.5px!important}
+  .step-guide small{font-size:10.5px!important}
+  .detected-site-url{margin:0 0 11px!important;padding:10px 12px!important;grid-template-columns:34px minmax(0,1fr)!important}
+  .detected-site-url-icon{width:31px!important;height:31px!important}
+  .detected-site-url small{font-size:9px!important}
+  .detected-site-url strong{font-size:12.5px!important}
+  .detected-site-url p{font-size:10.5px!important;line-height:1.3!important}
+
+  .form-grid{row-gap:11px!important;column-gap:14px!important}
+  body.installer-step-1 .form-grid.three{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:10px 14px!important}
+  body.installer-step-1 .form-grid.three > :nth-child(1){grid-column:span 8!important}
+  body.installer-step-1 .form-grid.three > :nth-child(2){grid-column:span 4!important}
+  body.installer-step-1 .form-grid.three > :nth-child(3){grid-column:span 6!important}
+  body.installer-step-1 .form-grid.three > :nth-child(4){grid-column:span 6!important}
+  body.installer-step-1 .form-grid.three > :nth-child(5),
+  body.installer-step-1 .form-grid.three > :nth-child(n+6){grid-column:1/-1!important}
+
+  .field-label{min-height:20px!important;font-size:13px!important;line-height:1.25!important}
+  .field>input,.field>select{margin-top:5px!important}
+  input,select{min-height:43px!important;padding:9px 12px!important;border-radius:10px!important;font-size:13.5px!important}
+  .password-wrap{margin-top:5px!important}
+  .password-toggle{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important}
+  .field small{margin-top:4px!important;font-size:10.5px!important;line-height:1.3!important}
+  .db-create-notice{padding:10px 12px!important;margin-top:0!important}
+  .db-create-notice strong{font-size:12px!important}
+  .db-create-notice span:not(.notice-icon){font-size:10px!important}
+
+  body.installer-step-2 .form-grid,
+  body.installer-step-3 .form-grid{gap:11px 14px!important}
+  body.installer-step-2 .field-label,
+  body.installer-step-3 .field-label{font-size:13px!important;min-height:20px!important}
+  body.installer-step-2 input,body.installer-step-2 select,
+  body.installer-step-3 input,body.installer-step-3 select{min-height:43px!important;padding:9px 12px!important;font-size:13.5px!important}
+  body.installer-step-2 .field small,
+  body.installer-step-3 .field small{font-size:10.5px!important;line-height:1.3!important;margin-top:4px!important}
+
+  .footer{
+    min-height:58px!important;
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    align-items:center!important;
+    padding:8px 22px calc(8px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .footer > span,.footer > .button.secondary,.footer > .installer-back{grid-column:1!important;justify-self:start!important}
+  .footer-right{grid-column:2!important;justify-self:end!important;margin-left:auto!important;width:auto!important;display:flex!important;justify-content:flex-end!important}
+  .footer-right .button,.footer-right button{min-width:148px!important;width:auto!important}
+  .button,.footer button,.footer a.button{min-height:42px!important;padding:8px 15px!important;font-size:12px!important}
+}
+
+/* Shorter desktop screens keep the same readable scale and only tighten spacing. */
+@media (min-width:901px) and (max-height:760px){
+  .installer{grid-template-rows:78px minmax(0,1fr)!important}
+  .installer-head{height:78px!important;min-height:78px!important;padding:9px 18px!important}
+  .installer-brand img{width:86px!important;height:48px!important}
+  .installer-brand strong{font-size:21px!important}
+  .installer-brand small{font-size:11.5px!important}
+  .side{padding-top:15px!important}
+  .side-item{padding-top:8px!important;padding-bottom:8px!important}
+  .content-head{padding-top:14px!important;padding-bottom:6px!important}
+  .content-head h1{font-size:34px!important}
+  .content-progress{margin-bottom:8px!important}
+  .step-guide,.detected-site-url{padding-top:8px!important;padding-bottom:8px!important;margin-bottom:8px!important}
+  .form-grid{row-gap:8px!important}
+  input,select{min-height:39px!important;padding-top:6px!important;padding-bottom:6px!important}
+  .field small{margin-top:2px!important}
+  .footer{min-height:52px!important;padding-top:5px!important;padding-bottom:5px!important}
+}
+
+/* Tablet: two-column shell until the layout genuinely needs to collapse. */
+@media (min-width:721px) and (max-width:900px){
+  .page{padding:10px!important}
+  .installer{width:100%!important;height:95dvh!important;max-height:95dvh!important;grid-template-columns:190px minmax(0,1fr)!important}
+  .installer-brand strong{font-size:20px!important}
+  .content-head h1{font-size:34px!important}
+  .field-label{font-size:12.5px!important}
+}

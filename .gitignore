@@ -1,0 +1,7 @@
+config/database.php
+config/config.php
+config/app.key
+config/install.lock
+*.log
+.DS_Store
+Thumbs.db

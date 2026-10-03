@@ -1,0 +1,62 @@
+CMS CORE — LOCAL UI LIBRARIES
+
+The project already references local files from:
+
+assets/vendor/show-notify/showNotify.css
+assets/vendor/show-notify/showNotify.js
+assets/vendor/sweetalert2/sweetalert2.min.css
+assets/vendor/sweetalert2/sweetalert2.all.min.js
+assets/vendor/cms-modal/cmsModal.css
+assets/vendor/cms-modal/cmsModal.js
+
+showNotify is part of this project and supports:
+showNotify("Saved successfully", "success")
+showNotify("Something failed", "error")
+showNotify("Please review this", "warning")
+showNotify("Useful information", "info")
+
+Swal confirmations use:
+Swal.fire({
+  icon: "warning",
+  title: "Delete item?",
+  text: "This action cannot be undone.",
+  showCancelButton: true
+})
+
+CMSModal is the reusable first-party dialog system:
+CMSModal.fire({
+  variant: "info",
+  title: "Review information",
+  text: "This modal is fully local and viewport safe.",
+  confirmText: "Continue",
+  cancelText: "Cancel",
+  showCancel: true
+})
+
+All three UI components are bundled locally. The CMS does not require a CDN for notifications, confirmations or modals.
+
+
+IZZY UI STANDARD 2026-09-30
+---------------------------
+All interface libraries below are packaged locally; no CDN is used for these UI components:
+- jQuery local: assets/vendor/jquery/jquery.min.js
+- Select2-compatible local: assets/vendor/select2/select2.local.css + select2.local.js
+- showNotify local: assets/vendor/show-notify/ (success, error, danger, warning, info)
+- Swal.fire local: assets/vendor/sweetalert2/
+- CMS modal local: assets/vendor/cms-modal/
+- Shared premium UI rules: assets/ui-standards.css + assets/ui-standards.js
+
+Rules applied to installer, public site and admin where applicable:
+- no native alert()/confirm()
+- confirmations use Swal.fire / local modal
+- modal backdrop click does not close dialogs
+- Select2 is initialized from local assets
+- buttons include action icons and avoid white action surfaces
+- file inputs support browse, drag/drop and paste
+- admin KPI cards keep high contrast and premium hover motion
+
+Installer 4.3.6
+- Back preserves the current step draft.
+- F5/Ctrl+R/Cmd+R confirmations use the bundled Swal.fire implementation.
+- Browser toolbar reload restores/discards the captured draft through Swal after reload, avoiding native confirm dialogs.
+- Database creation is deferred until final installation confirmation.

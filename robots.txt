@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /install/
+Sitemap: https://izzycloud.app/sitemap.xml
