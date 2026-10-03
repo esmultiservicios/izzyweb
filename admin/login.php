@@ -15,9 +15,9 @@ if(isset($_GET['installed'])) {
 }
 $error='';
 $set=settings();
-$favicon=trim((string)($set['favicon_path']??($set['admin_logo_path']??'')));if($favicon==='')$favicon='assets/izzy/logo-mark.png';
 $brand=$set['admin_brand_name']??"CMS Core Admin";
-$logo=trim((string)($set['admin_logo_path']??''));if($logo===''||$logo==='assets/izzy/logo-mark.png')$logo='assets/izzy/logo-full-dark.png';
+$logo=resolved_public_asset($set['admin_logo_path']??'', default_admin_brand_logo($brand));
+$favicon=resolved_public_asset($set['favicon_path']??($set['admin_logo_path']??''), default_admin_brand_favicon($brand));
 $prefill=trim((string)($_SESSION['cms_login_prefill']??''));
 $loginNotice=is_array($_SESSION['cms_login_notice']??null)?$_SESSION['cms_login_notice']:null;
 $showInstalledNotice=!empty($_SESSION['cms_install_completed_notice']);

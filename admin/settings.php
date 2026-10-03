@@ -108,6 +108,10 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
     }
 }
 $set=settings();
+$brandName=(string)($set['admin_brand_name']??'CMS Core Admin');
+$resolvedAdminLogo = resolved_public_asset($set['admin_logo_path'] ?? '', default_admin_brand_logo($brandName));
+$resolvedFavicon = resolved_public_asset($set['favicon_path'] ?? '', default_admin_brand_favicon($brandName));
+$resolvedMaintenanceImage = resolved_public_asset($set['maintenance_image_path'] ?? '', '');
 $pageTitle='Settings';
 $active='settings';
 require __DIR__.'/_header.php';
@@ -175,23 +179,40 @@ endif;
 <div class="upload-preview" data-upload-preview>
 </div>
 </div>
-</div><?php
-if(!empty($set['favicon_path'])):
-?>
-<div class="saved-favicon">
-<img src="../<?=h($set['favicon_path'])?>" alt="Current favicon">
+</div>
+<div class="branding-current-grid">
+<div class="saved-image-row saved-brand-preview">
+<?php if($resolvedAdminLogo!==''): ?>
+<button class="current-media-preview current-media-preview--brand" type="button" data-preview-src="../<?=h($resolvedAdminLogo)?>" data-preview-caption="Current admin logo">
+<img src="../<?=h($resolvedAdminLogo)?>" alt="Current admin logo">
+<span>Click to preview</span>
+</button>
+<?php else: ?>
+<div class="saved-image-empty">No admin logo saved yet.</div>
+<?php endif; ?>
+<div>
+<strong>Current admin logo</strong>
+<small><?=h($resolvedAdminLogo!==''?$resolvedAdminLogo:'No logo saved yet.')?></small>
+</div>
+</div>
+<div class="saved-favicon saved-brand-preview">
+<?php if($resolvedFavicon!==''): ?>
+<button class="favicon-preview-btn" type="button" data-preview-src="../<?=h($resolvedFavicon)?>" data-preview-caption="Current favicon">
+<img src="../<?=h($resolvedFavicon)?>" alt="Current favicon">
+</button>
+<?php else: ?>
+<div class="saved-image-empty is-compact">No favicon</div>
+<?php endif; ?>
 <div>
 <strong>Current browser tab icon</strong>
-<small><?=h($set['favicon_path'])?>
-</small>
+<small><?=h($resolvedFavicon!==''?$resolvedFavicon:'No favicon saved yet.')?></small>
 </div>
 <label class="premium-check">
 <input type="checkbox" name="remove_favicon" value="1">
 <span>Remove favicon</span>
 </label>
-</div><?php
-endif;
-?>
+</div>
+</div>
 <div class="two-col">
 <label>Phone<input name="phone" value="<?=h($set['phone']??'')?>">
 </label>
@@ -292,10 +313,10 @@ endif;
 if(!empty($set['maintenance_image_path'])):
 ?>
 <div class="saved-image-row">
-<img src="../<?=h($set['maintenance_image_path'])?>" alt="Maintenance preview">
+<img src="../<?=h($resolvedMaintenanceImage)?>" alt="Maintenance preview">
 <div>
 <strong>Current maintenance image</strong>
-<small><?=h($set['maintenance_image_path'])?>
+<small><?=h($resolvedMaintenanceImage!==''?$resolvedMaintenanceImage:($set['maintenance_image_path']??''))?>
 </small>
 </div>
 <label class="compact-check">

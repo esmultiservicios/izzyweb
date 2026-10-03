@@ -282,6 +282,45 @@ function mark_all_notifications_read(?int $adminId=null): void {
     } catch(Throwable $e) {
     }
 }
+
+function normalize_public_asset_path(?string $path): string {
+    $path=trim((string)$path);
+    if($path==='')return '';
+    return ltrim(str_replace('\\','/',$path),'/');
+}
+function project_root_path(): string {
+    static $root=null;
+    if($root!==null)return $root;
+    $resolved=realpath(__DIR__.'/..');
+    return $root=$resolved?:dirname(__DIR__);
+}
+function public_asset_exists(?string $path): bool {
+    $path=normalize_public_asset_path($path);
+    if($path==='')return false;
+    $absolute=project_root_path().'/'.$path;
+    return is_file($absolute);
+}
+function default_admin_brand_logo(?string $brandName=''): string {
+    $brandName=trim((string)$brandName);
+    if($brandName!==''&&preg_match('/es\s*multiservicios/i',$brandName)) {
+        return 'assets/brand/es-multiservicios-official.png';
+    }
+    return 'assets/izzy/logo-full-dark.png';
+}
+function default_admin_brand_favicon(?string $brandName=''): string {
+    $brandName=trim((string)$brandName);
+    if($brandName!==''&&preg_match('/es\s*multiservicios/i',$brandName)) {
+        return 'assets/brand/favicon.png';
+    }
+    return 'assets/izzy/logo-mark.png';
+}
+function resolved_public_asset(?string $path,string $fallback=''): string {
+    $path=normalize_public_asset_path($path);
+    if($path!==''&&public_asset_exists($path))return $path;
+    $fallback=normalize_public_asset_path($fallback);
+    if($fallback!==''&&public_asset_exists($fallback))return $fallback;
+    return $fallback;
+}
 invalidate_session_from_previous_installation();
 try_remember_login();
 sync_admin_session();

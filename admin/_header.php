@@ -5,15 +5,13 @@ $flash = take_flash();
 $admin = current_admin();
 $set = settings();
 $brand = $set['admin_brand_name'] ?? "CMS Core Admin";
-$brandLogo = trim((string) ($set['admin_logo_path'] ?? ''));
-if ($brandLogo === '' || $brandLogo === 'assets/izzy/logo-mark.png') $brandLogo = 'assets/izzy/logo-full-dark.png';
+$brandLogo = resolved_public_asset($set['admin_logo_path'] ?? '', default_admin_brand_logo($brand));
 $newEst = (int) db()->query("SELECT COUNT(*) FROM estimate_requests WHERE status='new'")->fetchColumn();
 $unreadNotes = unread_notification_count();
 $bellNotes = recent_notifications(6);
 $maintenance = ($set['maintenance_mode'] ?? '0') === '1';
 $avatar = $admin['avatar_path'] ?? '';
-$favicon = trim((string) ($set['favicon_path'] ?? $brandLogo));
-if ($favicon === '') $favicon = 'assets/izzy/logo-mark.png';
+$favicon = resolved_public_asset($set['favicon_path'] ?? $brandLogo, default_admin_brand_favicon($brand));
 ?>
 <!doctype html>
 <html lang="en">
@@ -50,7 +48,7 @@ if ($favicon === '') $favicon = 'assets/izzy/logo-mark.png';
 
             <a class="admin-brand" href="dashboard.php">
                 <?php if ($brandLogo !== ''): ?>
-                    <img src="../<?= h($brandLogo) ?>" alt="">
+                    <img src="../<?= h($brandLogo) ?>" alt="<?= h($brand) ?> logo">
                 <?php else: ?>
                     <span class="admin-brand-mark" aria-hidden="true">CMS</span>
                 <?php endif; ?>

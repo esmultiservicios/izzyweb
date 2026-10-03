@@ -222,13 +222,18 @@ foreach($rows as $r):
 
 </p>
 <div class="actions">
-<a class="button secondary small" href="?edit=<?=$r['id']?>">Edit</a>
+<details class="action-menu">
+<summary>Actions ▾</summary>
+<nav class="action-menu-list">
+<a class="action-menu-item action-menu-item--edit" href="?edit=<?=$r['id']?>"><?=icon('edit')?> Edit</a>
 <form method="post" data-swal-confirm="Delete this integration?" data-swal-text="Stored integration settings for this provider will be removed.">
 <input type="hidden" name="csrf" value="<?=h(csrf_token())?>">
 <input type="hidden" name="action" value="delete">
 <input type="hidden" name="id" value="<?=$r['id']?>">
-<button class="button danger small">Delete</button>
+<button class="action-menu-item action-menu-item--danger" style="background:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important"><?=icon('trash')?> Delete</button>
 </form>
+</nav>
+</details>
 </div>
 </article><?php
 endforeach;

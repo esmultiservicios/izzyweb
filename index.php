@@ -15,6 +15,8 @@ try{
 }catch(Throwable $e){http_response_code(500);echo '<h1>IZZY</h1><p>Completa la instalación desde /install/.</p>';exit;}
 function c(string $k,string $fallback=''):string{global $content;return trim((string)($content[$k]??$fallback));}
 
+$companyUrl='https://esmultiservicios.com/';
+
 function ui_icon(string $name): string
 {
     static $icons = [
@@ -228,6 +230,10 @@ $primarySolutions = [
                     <a href="#<?=h((string)$navigationItem['anchor_id'])?>"><?=h((string)$navigationItem['navigation_label'])?></a>
                 <?php endif; ?>
             <?php endforeach; ?>
+            <a class="company-link" href="<?=h($companyUrl)?>" target="_blank" rel="noopener" aria-label="Visitar ES MULTISERVICIOS">
+                <?=ui_icon('link')?>
+                <span><small>Una solución de</small><strong>ES MULTISERVICIOS</strong></span>
+            </a>
             <?php if($systemAccessEnabled&&$systemAccessUrl!==''): ?><a class="portal-link" href="<?=h($systemAccessUrl)?>" <?=$systemAccessNewTab?'target="_blank" rel="noopener"':''?>>Ingresar a IZZY</a><?php endif; ?>
             <?php foreach($landingNavigation as $navigationItem): ?>
                 <?php if(($navigationItem['navigation_style'] ?? 'link') === 'cta'): ?>
@@ -662,6 +668,9 @@ $primarySolutions = [
         <div class="footer-brand">
             <img src="<?=h($logoOnDark)?>" alt="IZZY">
             <p><strong>IZZY</strong> es la solución de gestión empresarial de <strong>ES MULTISERVICIOS</strong>, diseñada para vender mejor, controlar más y crecer con una imagen profesional.</p>
+            <a class="footer-company-badge" href="<?=h($companyUrl)?>" target="_blank" rel="noopener">
+                <?=ui_icon('link')?> <span>Una solución de <strong>ES MULTISERVICIOS</strong></span>
+            </a>
         </div>
         <div class="footer-col">
             <h3>Navegación</h3>
@@ -674,6 +683,11 @@ $primarySolutions = [
             <?php if($whatsappEnabled): ?><a href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" target="_blank" rel="noopener"><?=ui_icon('whatsapp')?> <?=h($phone)?></a><?php endif; ?>
             <?php if($email&&filter_var($email,FILTER_VALIDATE_EMAIL)): ?><a href="mailto:<?=h($email)?>"><?=ui_icon('mail')?> <?=h($email)?></a><?php endif; ?>
             <span><?=ui_icon('location')?> San Pedro Sula, Honduras</span>
+        </div>
+        <div class="footer-col footer-company">
+            <h3>Empresa</h3>
+            <a href="<?=h($companyUrl)?>" target="_blank" rel="noopener"><?=ui_icon('link')?> Visitar ES MULTISERVICIOS</a>
+            <span>Software empresarial · Honduras</span>
         </div>
         <div class="footer-col">
             <h3>Redes sociales</h3>

@@ -12571,3 +12571,287 @@ a:active{
 .auth-card form label > .ui-password-wrap > .ui-password-toggle:focus-visible{
   transform:translateY(-50%)!important;
 }
+
+
+/* ==========================================================
+   v1.0.96 — branding recovery, image previews and uniform actions
+   ========================================================== */
+.admin-brand img,
+.auth-brand-mark img{
+    display:block;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:transparent!important;
+}
+.auth-brand-mark{
+    width:min(240px,100%)!important;
+    height:92px!important;
+    margin:0 auto 14px!important;
+    padding:10px 14px!important;
+    border:1px solid #d9e6ef!important;
+    border-radius:18px!important;
+    background:linear-gradient(180deg,#ffffff,#f7fbfe)!important;
+    box-shadow:0 12px 32px rgba(8,42,80,.08)!important;
+}
+.auth-brand-mark img{
+    width:100%!important;
+    height:100%!important;
+}
+.admin-brand{
+    gap:12px!important;
+}
+.admin-brand img{
+    width:auto!important;
+    min-width:0!important;
+    max-width:200px!important;
+    height:52px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:transparent!important;
+}
+.saved-brand-preview{align-items:center!important;gap:14px!important}
+.branding-current-grid{display:grid;gap:12px;margin:14px 0 4px}
+.branding-current-grid .saved-image-row,
+.branding-current-grid .saved-favicon{margin-top:0!important}
+.favicon-preview-btn,
+.current-media-preview{
+    cursor:zoom-in;
+}
+.favicon-preview-btn{
+    width:74px;
+    height:74px;
+    min-width:74px;
+    padding:10px!important;
+    display:grid!important;
+    place-items:center!important;
+    border:1px solid #d5e4ee!important;
+    border-radius:18px!important;
+    background:#fff!important;
+    box-shadow:0 12px 28px rgba(8,42,80,.08)!important;
+}
+.favicon-preview-btn img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+.saved-image-empty{
+    min-height:76px;
+    min-width:150px;
+    display:grid;
+    place-items:center;
+    padding:14px;
+    border:1px dashed #c9d8e4;
+    border-radius:18px;
+    background:#f8fbfd;
+    color:#6b7e92;
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
+}
+.saved-image-empty.is-compact{min-width:74px;min-height:74px;padding:8px;border-radius:16px;font-size:11px}
+.upload-preview-item button,
+.zoom-btn,
+.plan-image-loupe,
+.current-media-preview span{
+    border-radius:14px!important;
+}
+.ui-password-toggle{
+    right:10px!important;
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    border:1px solid #cdddea!important;
+    border-radius:14px!important;
+    background:linear-gradient(180deg,#f8fbfd,#eef4f8)!important;
+    color:#0b315d!important;
+    box-shadow:0 8px 18px rgba(9,52,97,.08)!important;
+}
+.ui-password-toggle:hover,
+.ui-password-toggle:focus-visible{
+    background:linear-gradient(180deg,#eef7fc,#e3f0f8)!important;
+    border-color:#b8d1e4!important;
+    color:#0a7faa!important;
+}
+.ui-password-toggle svg{width:18px!important;height:18px!important;stroke-width:1.85!important}
+.mini-banner.is-empty{
+    display:grid;
+    place-items:center;
+    min-height:150px;
+    background:linear-gradient(180deg,#eef4f8,#e6edf3);
+}
+.mini-banner-placeholder{
+    display:grid;
+    gap:6px;
+    padding:18px;
+    text-align:center;
+}
+.mini-banner-placeholder strong{
+    color:#0b315d;
+    font-size:16px;
+    font-weight:900;
+}
+.mini-banner-placeholder span{
+    color:#678094;
+    font-size:12px;
+    font-weight:700;
+}
+.preview-actions .button,
+.form-actions .button,
+.form-actions button,
+.heading-actions .button,
+.project-form-actions button,
+.section-context-actions .button{
+    min-height:44px!important;
+    border-radius:14px!important;
+    font-weight:900!important;
+}
+@media(max-width:760px){
+    .admin-brand img{max-width:148px!important;height:42px!important}
+    .auth-brand-mark{height:84px!important}
+    .branding-current-grid{grid-template-columns:1fr}
+}
+
+/* ==========================================================
+   v1.0.97 — Roles actions, cleaner previews and full-width
+   page-content preview alignment
+   ========================================================== */
+.role-card-actions{
+    align-self:flex-start;
+}
+.role-card-actions .action-menu{
+    min-width:140px;
+}
+.role-card-actions .action-menu > summary{
+    min-width:132px;
+    justify-content:center;
+}
+
+.current-media-preview--brand{
+    position:relative!important;
+    width:96px!important;
+    min-width:96px!important;
+    max-width:96px!important;
+    height:96px!important;
+    aspect-ratio:1 / 1!important;
+    display:grid!important;
+    place-items:center!important;
+    overflow:hidden!important;
+    padding:12px!important;
+    border:1px solid #d5e4ee!important;
+    border-radius:20px!important;
+    background:#ffffff!important;
+    box-shadow:0 12px 28px rgba(8,42,80,.08)!important;
+}
+.current-media-preview--brand img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+}
+.current-media-preview--brand span{
+    right:8px!important;
+    bottom:8px!important;
+    width:28px!important;
+    height:28px!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:0!important;
+    border-radius:999px!important;
+    background:rgba(11,49,93,.94)!important;
+    color:#ffffff!important;
+    font-size:0!important;
+    box-shadow:0 8px 18px rgba(8,42,80,.18)!important;
+}
+.current-media-preview--brand span::before{
+    content:'⌕';
+    font-size:15px;
+    line-height:1;
+    font-weight:900;
+}
+.saved-brand-preview{
+    align-items:center!important;
+}
+.saved-brand-preview > div:last-child{
+    display:grid;
+    gap:4px;
+    min-width:0;
+}
+.saved-brand-preview strong,
+.saved-favicon strong{
+    color:#0d294a;
+}
+.saved-brand-preview small,
+.saved-favicon small{
+    color:#687b90;
+    overflow-wrap:anywhere;
+}
+
+.mini-banner.is-empty{
+    min-height:190px!important;
+    aspect-ratio:16 / 7!important;
+    background:linear-gradient(180deg,#edf4fa 0%,#e8f0f7 100%)!important;
+    border-bottom:1px solid #dbe6f0;
+}
+.mini-banner.is-empty .mini-banner-placeholder{
+    width:100%;
+    height:100%;
+    min-height:190px;
+    display:grid;
+    place-content:center;
+    gap:10px;
+    padding:24px;
+}
+.mini-banner.is-empty .mini-banner-placeholder strong{
+    margin:0;
+    font-size:24px;
+    line-height:1.12;
+    color:#0d3563;
+}
+.mini-banner.is-empty .mini-banner-placeholder span{
+    margin:0;
+    font-size:13px;
+    color:#6b8195;
+}
+
+.section-focused-editor{
+    grid-template-columns:minmax(0, 1fr)!important;
+    gap:18px!important;
+}
+.section-edit-column,
+.section-preview-panel{
+    min-width:0;
+    width:100%;
+}
+.section-preview-panel{
+    position:relative!important;
+    top:auto!important;
+}
+.section-preview-panel .preview-panel-head,
+.section-preview-panel .preview-device-toolbar{
+    padding-left:18px;
+    padding-right:18px;
+}
+.section-preview-panel .preview-device-stage{
+    min-height:760px;
+}
+.section-preview-panel .preview-device-stage iframe{
+    height:720px;
+}
+
+@media (max-width:760px){
+    .current-media-preview--brand{
+        width:84px!important;
+        min-width:84px!important;
+        max-width:84px!important;
+        height:84px!important;
+    }
+    .section-preview-panel .preview-device-stage{
+        min-height:620px;
+        padding:12px;
+    }
+    .section-preview-panel .preview-device-stage iframe{
+        height:580px;
+    }
+}

@@ -1,3 +1,26 @@
+## v1.0.98
+- Agrega acceso visible desde el menú público hacia el sitio principal de ES MULTISERVICIOS.
+- Refuerza en el footer que IZZY es una solución de ES MULTISERVICIOS con enlace directo a la empresa.
+- Incorpora una columna Empresa en el footer sin alterar el contenido existente.
+- Mantiene el comportamiento responsive del menú y del footer en escritorio, tablet y móvil.
+
+## v1.0.95
+- Simplifica `.cpanel.yml` para seguir el modelo oficial de cPanel y ejecutar un script de despliegue dedicado.
+- Agrega `deploy-cpanel.sh` con copias explícitas y seguras hacia `/home/esmultiservicios/public_html/izzycloud.app`.
+- Protege configuración real de producción, uploads, `.env`, secretos, `php.ini`, `.user.ini`, `.well-known` y archivos runtime.
+- Agrega `.gitattributes` para normalizar LF y reducir cambios falsos por CRLF en cPanel/Linux.
+- Documenta claramente la separación recomendada entre repositorio administrado por cPanel y Document Root.
+- No requiere cambios de base de datos.
+
+## v1.0.94
+- Prepara el proyecto para Git Version Control de cPanel con `.cpanel.yml` en la raíz.
+- Define despliegue seguro hacia `/home/esmultiservicios/public_html/izzycloud.app/` sin copiar `.git` ni usar comodines sobre la raíz del repositorio.
+- Protege configuración de producción, secretos, `.env`, `php.ini`, `.user.ini`, `install.lock`, respaldos y contenido dinámico de `uploads/`.
+- Mantiene `.htaccess` versionado como base, pero el deploy solo lo crea si no existe para no sobrescribir cambios de cPanel/MultiPHP/SSL.
+- Amplía `.gitignore` para runtime, logs, caché, temporales, uploads, backups y archivos generados por cPanel/instalador.
+- Agrega `CPANEL-DEPLOY.md` con la arquitectura y comandos seguros de operación.
+- No requiere cambios de base de datos.
+
 ## v1.0.93
 - Corrige la captura de **Facturación móvil** para que muestre siempre el mismo botón azul de lupa que el resto de imágenes ampliables.
 - La imagen mantiene cursor `zoom-in`; sobre el botón de lupa el cursor cambia a `pointer`.

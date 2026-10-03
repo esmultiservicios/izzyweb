@@ -240,25 +240,32 @@ require __DIR__ . '/_header.php';
 
                 <div class="actions role-card-actions">
                     <?php if ($role['role_key'] !== 'owner'): ?>
-                        <a
-                            class="button secondary small"
-                            href="?edit=<?= (int)$role['id'] ?>&amp;view=<?= h($roleView) ?>"
-                        >
-                            Permissions
-                        </a>
-                    <?php endif; ?>
+                        <details class="action-menu role-action-menu">
+                            <summary>Actions ▾</summary>
+                            <nav class="action-menu-list">
+                                <a
+                                    class="action-menu-item action-menu-item--edit"
+                                    href="?edit=<?= (int)$role['id'] ?>&amp;view=<?= h($roleView) ?>"
+                                >
+                                    <?= icon('shield') ?> Permissions
+                                </a>
 
-                    <?php if (!$role['is_system']): ?>
-                        <form
-                            method="post"
-                            data-swal-confirm="Delete this role?"
-                            data-swal-text="Only unused custom roles can be removed."
-                        >
-                            <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="id" value="<?= (int)$role['id'] ?>">
-                            <button class="button danger-lite small" type="submit">Delete</button>
-                        </form>
+                                <?php if (!$role['is_system']): ?>
+                                    <form
+                                        method="post"
+                                        data-swal-confirm="Delete this role?"
+                                        data-swal-text="Only unused custom roles can be removed."
+                                    >
+                                        <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= (int)$role['id'] ?>">
+                                        <button class="action-menu-item action-menu-item--danger" type="submit" style="background:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important">
+                                            <?= icon('trash') ?> Delete
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </nav>
+                        </details>
                     <?php endif; ?>
                 </div>
             </article>

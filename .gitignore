@@ -1,7 +1,84 @@
-config/database.php
-config/config.php
-config/app.key
-config/install.lock
+# ==========================================================
+# IZZY WEB - archivos que NO deben entrar al repositorio
+# ==========================================================
+
+# Entorno, secretos y credenciales
+.env
+.env.*
+!.env.example
+credentials/
+secrets/
+*.pem
+*.p12
+*.pfx
+
+# Configuración generada por el instalador / producción
+/config/database.php
+/config/config.php
+/config/app.key
+/config/install.lock
+/config/installer-backups/
+/config/*.bak
+/config/*.backup
+
+# Archivos generados o modificados por cPanel / PHP
+.user.ini
+php.ini
+/.well-known/
+/cgi-bin/
+error_log
+error_log.*
+
+# Logs y runtime
 *.log
+/logs/
+/cache/
+/tmp/
+/temp/
+/runtime/
+*.tmp
+*.pid
+*.cache
+
+# Backups generados fuera de uploads
+/backups/
+*.bak
+*.backup
+*.sql.gz
+*.tar.gz
+
+# Uploads y respaldos creados por la aplicación.
+# Se conservan en Git únicamente la protección del directorio y los .gitkeep.
+/uploads/*
+!/uploads/.htaccess
+!/uploads/about-artworks/
+/uploads/about-artworks/*
+!/uploads/about-artworks/.gitkeep
+!/uploads/backups/
+/uploads/backups/*
+!/uploads/backups/.gitkeep
+!/uploads/estimates/
+/uploads/estimates/*
+!/uploads/estimates/.gitkeep
+!/uploads/gallery/
+/uploads/gallery/*
+!/uploads/gallery/.gitkeep
+!/uploads/media/
+/uploads/media/*
+!/uploads/media/.gitkeep
+!/uploads/service-badges/
+/uploads/service-badges/*
+!/uploads/service-badges/.gitkeep
+!/uploads/videos/
+/uploads/videos/*
+!/uploads/videos/.gitkeep
+
+# SO / editor
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
+
+# Paquetes/artefactos locales
+*.zip

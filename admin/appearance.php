@@ -259,6 +259,9 @@ $currentBannerVideo = trim((string) ($set['banner_video_path'] ?? ''));
 $currentEmbed = trim((string) ($set['banner_embed_url'] ?? ''));
 $currentPreset = (string) ($set['design_preset'] ?? 'core');
 
+$currentBannerImage = resolved_public_asset($set['banner_image_path'] ?? '', '');
+$currentBannerVideo = resolved_public_asset($set['banner_video_path'] ?? '', '');
+$resolvedBannerPreviewImage = $currentBannerImage;
 $previewColors = [
     'primary' => $set['color_primary'] ?? '#0f7777',
     'secondary' => $set['color_secondary'] ?? '#f2d45c',
@@ -575,19 +578,25 @@ $previewColors = [
                     <div class="current-media-head">
                         <div>
                             <strong>Current banner image</strong>
-                            <small><?= $bannerImage !== '' ? 'Uploaded image' : 'Default banner image' ?></small>
+                            <small><?= $currentBannerImage !== '' ? ($bannerImage !== '' ? 'Uploaded image' : 'Default banner image') : 'No banner image saved yet' ?></small>
                         </div>
-                        <a class="button secondary small" href="../<?= h($currentBannerImage) ?>" target="_blank" rel="noopener">Open</a>
+                        <?php if ($currentBannerImage !== ''): ?>
+                            <a class="button secondary small" href="../<?= h($currentBannerImage) ?>" target="_blank" rel="noopener">Open</a>
+                        <?php endif; ?>
                     </div>
-                    <button
-                        type="button"
-                        class="current-media-preview"
-                        data-preview-src="../<?= h($currentBannerImage) ?>"
-                        data-preview-caption="Current website banner"
-                    >
-                        <img src="../<?= h($currentBannerImage) ?>" alt="Current website banner preview">
-                        <span>Click to preview</span>
-                    </button>
+                    <?php if ($currentBannerImage !== ''): ?>
+                        <button
+                            type="button"
+                            class="current-media-preview"
+                            data-preview-src="../<?= h($currentBannerImage) ?>"
+                            data-preview-caption="Current website banner"
+                        >
+                            <img src="../<?= h($currentBannerImage) ?>" alt="Current website banner preview">
+                            <span>Click to preview</span>
+                        </button>
+                    <?php else: ?>
+                        <div class="saved-image-empty">No banner image selected yet.</div>
+                    <?php endif; ?>
                 </div>
 
                 <?php if ($currentBannerVideo !== ''): ?>
@@ -779,8 +788,15 @@ $previewColors = [
                     --mini-muted:<?= h($previewColors['muted']) ?>;
                 "
             >
-                <div class="mini-banner">
-                    <img src="../<?= h($currentBannerImage) ?>" alt="Banner preview">
+                <div class="mini-banner <?= $resolvedBannerPreviewImage === '' ? 'is-empty' : '' ?>">
+                    <?php if ($resolvedBannerPreviewImage !== ''): ?>
+                        <img src="../<?= h($resolvedBannerPreviewImage) ?>" alt="Banner preview">
+                    <?php else: ?>
+                        <div class="mini-banner-placeholder">
+                            <strong><?= h($set['admin_brand_name'] ?? 'Website banner') ?></strong>
+                            <span>No banner image selected yet</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="mini-nav">HOME · SERVICES · GALLERY · ABOUT · CONTACT</div>
                 <div class="mini-content">
