@@ -93,6 +93,32 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
 .auth-options>a{display:flex!important;align-items:center!important;justify-content:center!important;min-height:52px!important;padding:0 4px!important;text-align:center!important}
 @media(max-width:640px){.auth-options{align-items:stretch!important}.remember-check,.auth-options>a{width:100%!important}}
 
+/* v1.0.102 - stacked full-width auth options without increasing card height */
+.auth-card-premium{padding-top:34px!important;padding-bottom:30px!important}
+.auth-brand-mark{width:92px!important;height:92px!important;margin-bottom:6px!important}
+.auth-brand-mark img{width:76px!important;height:76px!important}
+.auth-card form{margin-top:18px!important}
+.auth-options{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin-top:4px!important}
+.remember-check{width:100%!important;min-height:50px!important;padding:7px 12px!important}
+.cms-check-text small{font-size:10.5px!important;line-height:1.18!important}
+.auth-options>a{width:100%!important;min-height:38px!important;padding:8px 12px!important;border:1px solid #d7e4ef!important;border-radius:12px!important;background:#f3f8fc!important;justify-content:center!important;text-align:center!important;line-height:1.2!important;text-decoration:none!important}
+.auth-options>a:hover,.auth-options>a:focus-visible{background:#eaf4fb!important;border-color:#c5dbea!important;text-decoration:none!important}
+.auth-card form>button[type="submit"]{margin-top:8px!important}
+.auth-footer-note{margin-top:16px!important;padding-top:12px!important}
+@media(max-width:640px){
+  .auth-card-premium{padding-top:24px!important;padding-bottom:22px!important}
+  .auth-brand-mark{width:78px!important;height:78px!important;margin-bottom:4px!important}
+  .auth-brand-mark img{width:64px!important;height:64px!important}
+  .auth-card .eyebrow{margin-top:7px!important;margin-bottom:4px!important}
+  .auth-card h1{margin-top:2px!important;margin-bottom:6px!important}
+  .auth-card>p:not(.eyebrow){line-height:1.4!important}
+  .auth-card form{margin-top:14px!important;gap:10px!important}
+  .remember-check{min-height:46px!important;padding:6px 10px!important}
+  .auth-options>a{min-height:36px!important;padding:7px 10px!important}
+  .auth-card form>button[type="submit"]{margin-top:4px!important}
+  .auth-footer-note{margin-top:12px!important;padding-top:10px!important}
+}
+
 /* v1.0.30 - deterministic centered Remember me control */
 .remember-check{position:relative!important;display:grid!important;grid-template-columns:30px minmax(0,1fr)!important;align-items:center!important;column-gap:10px!important}
 .remember-check input[type="checkbox"]{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;min-height:1px!important;margin:0!important}
