@@ -58,14 +58,24 @@ try {
             exit;
         }
         $rateStatus=public_form_rate_status($antiSpam);
-        if($rateStatus==='cooldown') {
+        $ipRateStatus=public_form_ip_rate_status($antiSpam);
+        if($rateStatus==='cooldown'||$ipRateStatus==='cooldown') {
             http_response_code(429);
             echo json_encode(['ok'=>false,'message'=>$labels['cooldown']]);
             exit;
         }
-        if($rateStatus==='hourly') {
+        if($rateStatus==='hourly'||$ipRateStatus==='hourly') {
             http_response_code(429);
             echo json_encode(['ok'=>false,'message'=>$labels['hourly']]);
+            exit;
+        }
+        if(public_form_is_obvious_automation([
+            substr((string)($_POST['name']??''),0,300),
+            substr((string)($_POST['email']??''),0,300),
+            substr((string)($_POST['service']??''),0,300),
+            substr((string)($_POST['message']??''),0,10000),
+        ])) {
+            echo json_encode(['ok'=>true,'message'=>$labels['success']]);
             exit;
         }
         if($antiSpam['block_sales']&&public_form_is_obvious_sales_solicitation([
@@ -123,7 +133,19 @@ try {
         if($textLength($value)>$maximum)throw new RuntimeException($labels['length']);
     }
 
-    if($email===''||!filter_var($email,FILTER_VALIDATE_EMAIL))throw new RuntimeException($labels['email']);
+    $emailValidation=EmailValidation::validate($email,$set,true);
+    if(!$emailValidation['ok']) {
+        http_response_code(422);
+        echo json_encode([
+            'ok'=>false,
+            'message'=>$emailValidation['message']?:$labels['email'],
+            'field'=>'email',
+            'code'=>$emailValidation['status'],
+            'suggestion'=>$emailValidation['suggestion'],
+        ]);
+        exit;
+    }
+    $email=(string)($emailValidation['email']??$email);
     $required=[
         'name'=>setting_enabled($set,'form_required_name',true),
         'phone'=>setting_enabled($set,'form_required_phone',false),
@@ -173,7 +195,10 @@ try {
     }
     if($first)$pdo->prepare('UPDATE estimate_requests SET photo_path=? WHERE id=?')->execute([$first,$id]);
     $pdo->commit();
-    if($antiSpam['enabled'])record_public_form_submission();
+    if($antiSpam['enabled']) {
+        record_public_form_submission();
+        record_public_form_ip_submission();
+    }
     admin_notify('info','New estimate request',($name!==''?$name:'A website visitor').' submitted a free estimate request.','estimates.php?view='.$id);
     log_activity('estimate_received','New website estimate request',['estimate_id'=>$id]);
     $request=['full_name'=>$name,
@@ -196,15 +221,6 @@ try {
             filter_var($email,FILTER_VALIDATE_EMAIL)?$email:''
         );
         if(!$adminResult['success'])$emailFailures[]='internal notification';
-        if(filter_var($email,FILTER_VALIDATE_EMAIL)) {
-            $customerResult=$mailer->sendWithFallback(
-                [4,1],
-                $email,
-                'We received your website request',
-                EmailTemplates::estimateCustomer($request,$set)
-            );
-            if(!$customerResult['success'])$emailFailures[]='customer confirmation';
-        }
     } catch(Throwable $mailError) {
         $emailFailures[]='email delivery';
     }

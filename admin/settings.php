@@ -71,11 +71,18 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             $maximumPerHour=max(1,min(50,(int)($_POST['form_maximum_per_hour']??5)));
             $siteKey=trim((string)($_POST['turnstile_site_key']??''));
             $newSecret=trim((string)($_POST['turnstile_secret_key']??''));
+            $emailApiUrl=trim((string)($_POST['email_validation_api_url']??''));
+            $newEmailApiToken=trim((string)($_POST['email_validation_api_token']??''));
             if(strlen($siteKey)>255||preg_match('/[\x00-\x1F\x7F]/',$siteKey))throw new RuntimeException('Enter a valid Turnstile Site Key.');
             if(strlen($newSecret)>255||preg_match('/[\x00-\x1F\x7F]/',$newSecret))throw new RuntimeException('Enter a valid Turnstile Secret Key.');
+            if($emailApiUrl!==''&&(!filter_var(str_replace('{email}','sample@example.com',$emailApiUrl),FILTER_VALIDATE_URL)||!preg_match('~^https://~i',$emailApiUrl)))throw new RuntimeException('Email validation API URL must use HTTPS and may include {email}.');
+            if(strlen($newEmailApiToken)>500||preg_match('/[\x00-\x1F\x7F]/',$newEmailApiToken))throw new RuntimeException('Enter a valid email validation API token.');
             $storedSecret=(string)($set['turnstile_secret_key']??'');
             if(isset($_POST['remove_turnstile_secret']))$storedSecret='';
             elseif($newSecret!=='')$storedSecret=secret_encrypt($newSecret);
+            $storedEmailApiToken=(string)($set['email_validation_api_token']??'');
+            if(isset($_POST['remove_email_validation_api_token']))$storedEmailApiToken='';
+            elseif($newEmailApiToken!=='')$storedEmailApiToken=secret_encrypt($newEmailApiToken);
 
             $pdo->beginTransaction();
             save_setting('form_antispam_enabled',isset($_POST['form_antispam_enabled'])?'1':'0');
@@ -83,16 +90,26 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             save_setting('form_minimum_seconds',(string)$minimumSeconds);
             save_setting('form_cooldown_seconds',(string)$cooldownSeconds);
             save_setting('form_maximum_per_hour',(string)$maximumPerHour);
+            save_setting('email_validation_enabled',isset($_POST['email_validation_enabled'])?'1':'0');
+            save_setting('email_validation_dns_enabled',isset($_POST['email_validation_dns_enabled'])?'1':'0');
+            save_setting('email_validation_disposable_enabled',isset($_POST['email_validation_disposable_enabled'])?'1':'0');
+            save_setting('email_validation_api_enabled',isset($_POST['email_validation_api_enabled'])?'1':'0');
+            save_setting('email_validation_api_url',$emailApiUrl);
+            save_setting('email_validation_api_token',$storedEmailApiToken);
             save_setting('turnstile_enabled',isset($_POST['turnstile_enabled'])?'1':'0');
             save_setting('turnstile_site_key',$siteKey);
             save_setting('turnstile_secret_key',$storedSecret);
             $pdo->commit();
             log_activity('public_form_protection','Updated public form anti-spam protection.',[
                 'local_protection'=>isset($_POST['form_antispam_enabled']),
+                'email_validation'=>isset($_POST['email_validation_enabled']),
+                'email_api'=>isset($_POST['email_validation_api_enabled']),
                 'turnstile'=>isset($_POST['turnstile_enabled']),
             ]);
             if(isset($_POST['turnstile_enabled'])&&($siteKey===''||$storedSecret==='')) {
                 flash('warning','Protection saved. Turnstile is enabled but incomplete, so public submissions will remain blocked until both keys are configured or Turnstile is disabled.');
+            } elseif(isset($_POST['email_validation_api_enabled'])&&$emailApiUrl==='') {
+                flash('warning','Protection saved. External email validation is enabled but no API URL is configured, so local validation will continue as fallback.');
             } else {
                 flash('success','Public form protection saved.');
             }
@@ -437,6 +454,8 @@ endif;
 </section>
 <?php
 $antiSpamSettings=public_form_antispam_config($set);
+$emailValidationSettings=public_email_validation_config($set);
+$emailValidationHasToken=$emailValidationSettings['api_token_stored'];
 $turnstileHasSecret=$antiSpamSettings['turnstile_secret_stored'];
 ?>
 <section class="panel wide animate-in" id="form-protection">
@@ -476,6 +495,52 @@ $turnstileHasSecret=$antiSpamSettings['turnstile_secret_stored'];
 <small class="field-hint">Successful submissions per browser session. Recommended: 5.</small>
 </label>
 </div>
+<div class="settings-subheading turnstile-heading">
+<div>
+<strong>Email validation</strong>
+<small>Validates syntax, common typos, temporary email domains and MX/DNS before the form can be sent.</small>
+</div>
+<span class="credential-status is-ready">Local validation ready</span>
+</div>
+<div class="form-protection-switches">
+<label class="premium-switch protection-card">
+<input type="checkbox" name="email_validation_enabled" <?=$emailValidationSettings['enabled']?'checked':''?>>
+<span class="switch-ui" aria-hidden="true"></span>
+<span><b>Enable email validation</b><small>Runs in the browser and again on the server before accepting a request.</small></span>
+</label>
+<label class="premium-switch protection-card">
+<input type="checkbox" name="email_validation_dns_enabled" <?=$emailValidationSettings['dns_enabled']?'checked':''?>>
+<span class="switch-ui" aria-hidden="true"></span>
+<span><b>Validate MX / DNS</b><small>Blocks domains that do not appear able to receive email.</small></span>
+</label>
+<label class="premium-switch protection-card">
+<input type="checkbox" name="email_validation_disposable_enabled" <?=$emailValidationSettings['disposable_enabled']?'checked':''?>>
+<span class="switch-ui" aria-hidden="true"></span>
+<span><b>Block temporary email</b><small>Rejects known disposable and throwaway email providers.</small></span>
+</label>
+<label class="premium-switch protection-card">
+<input type="checkbox" name="email_validation_api_enabled" <?=$emailValidationSettings['api_enabled']?'checked':''?>>
+<span class="switch-ui" aria-hidden="true"></span>
+<span><b>Use external deliverability API</b><small>Optional. If the provider is unavailable, local validation remains the fallback and legitimate clients are not blocked.</small></span>
+</label>
+</div>
+<div class="two-col">
+<label>Email validation API URL
+<input type="url" name="email_validation_api_url" maxlength="500" value="<?=h($emailValidationSettings['api_url'])?>" placeholder="https://provider.example/verify?email={email}">
+<small class="field-hint">HTTPS only. Use <code>{email}</code> for a GET request; without it IZZY sends JSON by POST.</small>
+</label>
+<label>Email validation API token
+<input type="password" name="email_validation_api_token" maxlength="500" autocomplete="new-password" value="" placeholder="<?=$emailValidationHasToken?'Leave blank to keep stored token':'Optional Bearer token'?>">
+<small class="field-hint"><?=$emailValidationHasToken?'A token is stored encrypted and is never displayed again.':'Optional. Sent as an Authorization: Bearer header.'?></small>
+</label>
+</div>
+<?php if($emailValidationHasToken): ?>
+<label class="premium-check remove-secret-check">
+<input type="checkbox" name="remove_email_validation_api_token" value="1">
+<span>Remove stored email validation API token</span>
+</label>
+<?php endif; ?>
+<div class="privacy-note"><?=icon('mail')?> <span>IZZY never sends a confirmation email to validate the visitor. The address is checked silently before submission.</span></div>
 <div class="settings-subheading turnstile-heading">
 <div>
 <strong>Cloudflare Turnstile</strong>

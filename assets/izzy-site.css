@@ -2685,105 +2685,107 @@ body:has(.chat-widget-position-right) .floating-wa{left:18px!important;right:aut
 
 
 /* ==========================================================
-   v1.0.98 — ES MULTISERVICIOS company access in menu/footer
+   v1.0.98 — validación de correo y protección del formulario
    ========================================================== */
-.izzy-menu .company-link{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  min-height:42px;
-  padding:7px 11px;
-  border:1px solid #cfe8df;
-  border-radius:15px;
-  background:#effaf6;
-  color:#0b5862;
-  box-shadow:0 8px 20px rgba(8,42,80,.04);
-  line-height:1.05;
-}
-.izzy-menu .company-link:hover{
-  background:#e7f7f1;
-  color:#084b55;
-  border-color:#b9dfd2;
-}
-.izzy-menu .company-link svg{
-  width:17px;
-  height:17px;
-  flex:0 0 17px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:2;
-}
-.izzy-menu .company-link span{
+.email-validation-field{
   display:grid;
-  gap:2px;
-  text-align:left;
-}
-.izzy-menu .company-link small{
-  font-size:.60rem;
-  font-weight:800;
-  letter-spacing:.02em;
-  color:#51737a;
-}
-.izzy-menu .company-link strong{
-  font-size:.72rem;
-  font-weight:950;
-  white-space:nowrap;
-}
-
-.footer-main{
-  grid-template-columns:1.35fr .7fr .9fr .9fr .75fr;
-}
-.footer-company-badge{
-  width:max-content;
-  max-width:100%;
-  display:inline-flex!important;
-  align-items:center;
   gap:8px;
-  margin-top:16px;
-  padding:10px 13px;
-  border:1px solid rgba(179,232,217,.28);
-  border-radius:999px;
-  background:rgba(255,255,255,.07);
-  color:#e8f7f5!important;
-  text-decoration:none;
+}
+.email-validation-field>label{
+  display:grid;
+  gap:8px;
+}
+.email-validation-state{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:34px;
+  padding:8px 11px;
+  border:1px solid transparent;
+  border-radius:12px;
   font-size:.82rem;
   font-weight:800;
+  line-height:1.35;
 }
-.footer-company-badge:hover{
-  background:rgba(255,255,255,.12);
-  color:#fff!important;
+.email-validation-state[hidden]{display:none!important}
+.email-validation-indicator{
+  width:9px;
+  height:9px;
+  flex:0 0 9px;
+  border-radius:50%;
+  background:#8ca1b6;
 }
-.footer-company-badge svg{
-  width:17px;
-  height:17px;
-  flex:0 0 17px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:2;
+.email-validation-state.is-checking{
+  color:#35617f;
+  background:#f1f8fc;
+  border-color:#d7eaf4;
 }
-.footer-company-badge strong{color:#fff}
-.footer-company span{
-  color:#9fb4c8;
-  font-size:.86rem;
-  font-weight:700;
+.email-validation-state.is-checking .email-validation-indicator{
+  border:2px solid #8fc6e0;
+  border-top-color:#087eb5;
+  background:transparent;
+  animation:email-validation-spin .8s linear infinite;
 }
-
-@media(max-width:1120px){
-  .izzy-menu .company-link small{display:none}
-  .izzy-menu .company-link strong{font-size:.68rem}
-  .footer-main{grid-template-columns:1.2fr 1fr 1fr}
+.email-validation-state.is-valid{
+  color:#126343;
+  background:#eef9f3;
+  border-color:#cfeadb;
 }
-@media(max-width:860px){
-  .izzy-menu .company-link{
-    width:100%;
-    justify-content:flex-start;
-    padding:12px 14px;
-  }
-  .izzy-menu .company-link small{display:block}
-  .izzy-menu .company-link strong{font-size:.78rem}
-  .footer-main{grid-template-columns:1fr 1fr}
+.email-validation-state.is-valid .email-validation-indicator{background:#20a56c}
+.email-validation-state.is-invalid{
+  color:#9b3035;
+  background:#fff3f3;
+  border-color:#f0d0d2;
 }
+.email-validation-state.is-invalid .email-validation-indicator{background:#d84c54}
+.email-validation-state.is-suggestion{
+  color:#775a00;
+  background:#fff9e7;
+  border-color:#ecd98d;
+}
+.email-validation-state.is-suggestion .email-validation-indicator{background:#d5a900}
+.email-validation-state.is-warning{
+  color:#5d6570;
+  background:#f6f8fa;
+  border-color:#dfe6ec;
+}
+.email-suggestion-button{
+  margin-left:auto;
+  min-height:30px!important;
+  padding:6px 10px!important;
+  border:1px solid #b9d9ea!important;
+  border-radius:10px!important;
+  background:#eaf7fd!important;
+  color:#075f8f!important;
+  box-shadow:none!important;
+  font-size:.76rem!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+  white-space:nowrap;
+}
+.email-suggestion-button:hover,
+.email-suggestion-button:focus-visible{
+  background:#dff2fb!important;
+  color:#064c72!important;
+  transform:none!important;
+}
+.email-validation-field:has(.email-validation-state.is-valid) input{
+  border-color:#71c69d;
+  box-shadow:0 0 0 4px rgba(32,165,108,.08);
+}
+.email-validation-field:has(.email-validation-state.is-invalid) input,
+.email-validation-field:has(.email-validation-state.is-suggestion) input{
+  border-color:#e3a0a4;
+}
+@keyframes email-validation-spin{to{transform:rotate(360deg)}}
 @media(max-width:620px){
-  .footer-main{grid-template-columns:1fr}
-  .footer-company-badge{width:100%;justify-content:center;border-radius:16px;text-align:center}
+  .email-validation-state{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .email-suggestion-button{
+    width:100%;
+    margin-left:18px;
+    white-space:normal;
+  }
 }

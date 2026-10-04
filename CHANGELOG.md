@@ -1,8 +1,15 @@
-## v1.0.98
-- Agrega acceso visible desde el menú público hacia el sitio principal de ES MULTISERVICIOS.
-- Refuerza en el footer que IZZY es una solución de ES MULTISERVICIOS con enlace directo a la empresa.
-- Incorpora una columna Empresa en el footer sin alterar el contenido existente.
-- Mantiene el comportamiento responsive del menú y del footer en escritorio, tablet y móvil.
+## v1.0.98 — validación avanzada de correo y protección antispam
+
+- Valida el correo en frontend y backend antes de aceptar el formulario público.
+- Detecta errores comunes de dominios y ofrece sugerencias sin modificar el correo automáticamente.
+- Verifica registros MX/DNS y bloquea dominios que no parecen recibir correo.
+- Bloquea proveedores de correo temporal/desechable mediante una lista local mantenible.
+- Agrega una capa opcional de validación externa de entregabilidad con fallback seguro si el proveedor no responde.
+- Refuerza el honeypot, el tiempo mínimo del formulario, el rate limit por sesión y por IP anonimizada, y la detección de contenido automatizado.
+- Mantiene soporte opcional para Cloudflare Turnstile.
+- El formulario ya no envía correos de confirmación al visitante; solo notifica al administrador.
+- Agrega estado visual discreto para correo válido, inválido o con sugerencia.
+- No requiere cambios de base de datos.
 
 ## v1.0.95
 - Simplifica `.cpanel.yml` para seguir el modelo oficial de cPanel y ejecutar un script de despliegue dedicado.

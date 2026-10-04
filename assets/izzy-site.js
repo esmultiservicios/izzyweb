@@ -120,6 +120,128 @@
  const form=document.getElementById('estimateForm'),toast=document.getElementById('toast');
  const show=(m,type='info')=>{if(window.showNotify){window.showNotify(m,type);return}if(!toast)return;toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),4800)};
 
+ const emailField=form?.querySelector('[data-email-validation-field]');
+ const emailInput=emailField?.querySelector('[data-email-input]');
+ const emailState=emailField?.querySelector('[data-email-state]');
+ const emailMessage=emailField?.querySelector('[data-email-message]');
+ const emailSuggestion=emailField?.querySelector('[data-email-suggestion]');
+ let emailTimer=0;
+ let emailSequence=0;
+ let emailValidatedValue='';
+ let emailValidationStatus='idle';
+
+ const setEmailState=(status,message='',suggestion='')=>{
+   if(!emailState)return;
+   emailValidationStatus=status;
+   emailState.classList.remove('is-checking','is-valid','is-invalid','is-suggestion','is-warning');
+   if(status==='idle'){
+     emailState.hidden=true;
+     if(emailMessage)emailMessage.textContent='';
+     if(emailSuggestion){emailSuggestion.hidden=true;emailSuggestion.textContent='';emailSuggestion.dataset.value=''}
+     return;
+   }
+   emailState.hidden=false;
+   if(status==='checking')emailState.classList.add('is-checking');
+   if(status==='valid')emailState.classList.add('is-valid');
+   if(status==='invalid')emailState.classList.add('is-invalid');
+   if(status==='suggestion')emailState.classList.add('is-suggestion');
+   if(status==='warning')emailState.classList.add('is-warning');
+   if(emailMessage)emailMessage.textContent=message;
+   if(emailSuggestion){
+     if(suggestion){
+       emailSuggestion.hidden=false;
+       emailSuggestion.dataset.value=suggestion;
+       emailSuggestion.textContent=`Usar ${suggestion}`;
+     }else{
+       emailSuggestion.hidden=true;
+       emailSuggestion.textContent='';
+       emailSuggestion.dataset.value='';
+     }
+   }
+ };
+
+ const emailLooksValid=value=>{
+   const v=(value||'').trim();
+   if(!v||/\s/.test(v)||v.length>180)return false;
+   const parts=v.split('@');
+   if(parts.length!==2||!parts[0]||!parts[1]||!parts[1].includes('.'))return false;
+   if(parts[0].startsWith('.')||parts[0].endsWith('.')||parts[0].includes('..')||parts[1].includes('..'))return false;
+   return /^[^@\s]+@[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,63}$/.test(v);
+ };
+
+ const validateEmail=async(force=false)=>{
+   if(!emailInput)return true;
+   const value=emailInput.value.trim();
+   if(!value){
+     emailValidatedValue='';
+     setEmailState('idle');
+     return false;
+   }
+   if(!emailLooksValid(value)){
+     emailValidatedValue=value;
+     setEmailState('invalid','Ingresa un correo electrónico válido. Ejemplo: nombre@empresa.com');
+     return false;
+   }
+   if(!force&&emailValidatedValue===value&&emailValidationStatus==='valid')return true;
+   const requestId=++emailSequence;
+   setEmailState('checking','Validando correo...');
+   try{
+     const body=new URLSearchParams({email:value});
+     const response=await fetch('email-validate.php',{
+       method:'POST',
+       body,
+       headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}
+     });
+     const result=await response.json().catch(()=>({}));
+     if(requestId!==emailSequence)return false;
+     emailValidatedValue=value;
+     if(result.ok){
+       setEmailState('valid',result.message||'Correo válido');
+       return true;
+     }
+     if(result.status==='suggestion'&&result.suggestion){
+       setEmailState('suggestion',result.message||`¿Quisiste escribir ${result.suggestion}?`,result.suggestion);
+       return false;
+     }
+     if(result.status==='rate_limit'){
+       setEmailState('warning',result.message||'Espera un momento antes de volver a validar el correo.');
+       return true;
+     }
+     setEmailState('invalid',result.message||'Revisa el correo electrónico e inténtalo nuevamente.');
+     return false;
+   }catch(error){
+     if(requestId!==emailSequence)return false;
+     emailValidatedValue=value;
+     setEmailState('warning','No pudimos completar la validación avanzada ahora. Puedes continuar.');
+     return true;
+   }
+ };
+
+ emailInput?.addEventListener('input',()=>{
+   window.clearTimeout(emailTimer);
+   emailValidatedValue='';
+   const value=emailInput.value.trim();
+   if(!value){setEmailState('idle');return}
+   if(!emailLooksValid(value)){
+     setEmailState('invalid','Ingresa un correo electrónico válido. Ejemplo: nombre@empresa.com');
+     return;
+   }
+   setEmailState('checking','Validando correo...');
+   emailTimer=window.setTimeout(()=>validateEmail(),650);
+ });
+ emailInput?.addEventListener('blur',()=>{
+   window.clearTimeout(emailTimer);
+   if(emailInput.value.trim())validateEmail();
+ });
+ emailSuggestion?.addEventListener('click',()=>{
+   const suggestion=emailSuggestion.dataset.value||'';
+   if(!suggestion||!emailInput)return;
+   emailInput.value=suggestion;
+   emailValidatedValue='';
+   emailInput.focus();
+   validateEmail(true);
+ });
+
  const richRoot=form?.querySelector('[data-public-rich-editor]');
  const richContent=richRoot?.querySelector('[data-rich-content]');
  const richValue=richRoot?.querySelector('[data-rich-value]');
@@ -154,6 +276,8 @@
    window.setTimeout(()=>{
      if(richContent)richContent.innerHTML='';
      if(richValue)richValue.value='';
+     emailValidatedValue='';
+     setEmailState('idle');
    },0);
  });
 
@@ -161,6 +285,11 @@
    e.preventDefault();
    const richText=syncRich();
    if(!form.checkValidity()){form.reportValidity();return}
+   const emailReady=await validateEmail(true);
+   if(!emailReady){
+     emailInput?.focus();
+     return;
+   }
    if(richText.length<12){
      show('Cuéntanos un poco más sobre tu negocio y lo que necesitas.','warning');
      richContent?.focus();
@@ -173,11 +302,24 @@
    try{
      const r=await fetch('estimate-submit.php',{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'}});
      const j=await r.json().catch(()=>({}));
-     if(!r.ok||!j.ok)throw new Error(j.message||'No se pudo enviar la solicitud.');
+     if(!r.ok||!j.ok){
+       const error=new Error(j.message||'No se pudo enviar la solicitud.');
+       if(j.field==='email')error.emailResult=j;
+       throw error;
+     }
      show(j.message||'Solicitud recibida. Te contactaremos pronto.','success');
      form.reset();
      window.turnstile&&window.turnstile.reset?.();
    }catch(err){
+     if(err&&err.emailResult){
+       const result=err.emailResult;
+       if(result.code==='suggestion'&&result.suggestion){
+         setEmailState('suggestion',result.message||`¿Quisiste escribir ${result.suggestion}?`,result.suggestion);
+       }else{
+         setEmailState('invalid',result.message||'Revisa el correo electrónico e inténtalo nuevamente.');
+       }
+       emailInput?.focus();
+     }
      show(err.message||'No se pudo enviar. Intenta por WhatsApp.','error')
    }finally{
      btn.disabled=false;

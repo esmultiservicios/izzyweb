@@ -15,8 +15,6 @@ try{
 }catch(Throwable $e){http_response_code(500);echo '<h1>IZZY</h1><p>Completa la instalación desde /install/.</p>';exit;}
 function c(string $k,string $fallback=''):string{global $content;return trim((string)($content[$k]??$fallback));}
 
-$companyUrl='https://esmultiservicios.com/';
-
 function ui_icon(string $name): string
 {
     static $icons = [
@@ -230,10 +228,6 @@ $primarySolutions = [
                     <a href="#<?=h((string)$navigationItem['anchor_id'])?>"><?=h((string)$navigationItem['navigation_label'])?></a>
                 <?php endif; ?>
             <?php endforeach; ?>
-            <a class="company-link" href="<?=h($companyUrl)?>" target="_blank" rel="noopener" aria-label="Visitar ES MULTISERVICIOS">
-                <?=ui_icon('link')?>
-                <span><small>Una solución de</small><strong>ES MULTISERVICIOS</strong></span>
-            </a>
             <?php if($systemAccessEnabled&&$systemAccessUrl!==''): ?><a class="portal-link" href="<?=h($systemAccessUrl)?>" <?=$systemAccessNewTab?'target="_blank" rel="noopener"':''?>>Ingresar a IZZY</a><?php endif; ?>
             <?php foreach($landingNavigation as $navigationItem): ?>
                 <?php if(($navigationItem['navigation_style'] ?? 'link') === 'cta'): ?>
@@ -621,10 +615,27 @@ $primarySolutions = [
                             <select name="service"><option value="">Selecciona una opción</option><?php foreach($plans as $p): ?><option><?=h($p['name'])?></option><?php endforeach; ?><option>IZZY Empresarial</option><option>IZZY Restaurantes</option></select>
                         </label>
 
-                        <label class="span-2">
-                            <span class="field-label">Correo electrónico <span class="required">*</span></span>
-                            <input type="email" name="email" required maxlength="180" placeholder="tu@correo.com">
-                        </label>
+                        <div class="span-2 email-validation-field" data-email-validation-field>
+                            <label>
+                                <span class="field-label">Correo electrónico <span class="required">*</span></span>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    maxlength="180"
+                                    inputmode="email"
+                                    autocomplete="email"
+                                    spellcheck="false"
+                                    placeholder="tu@correo.com"
+                                    data-email-input
+                                >
+                            </label>
+                            <div class="email-validation-state" data-email-state aria-live="polite" hidden>
+                                <span class="email-validation-indicator" aria-hidden="true"></span>
+                                <span data-email-message></span>
+                                <button type="button" class="email-suggestion-button" data-email-suggestion hidden data-no-action-icon></button>
+                            </div>
+                        </div>
 
                         <div class="span-2 public-rich-field">
                             <span class="field-label">¿Qué necesitas? <span class="required">*</span></span>
@@ -668,9 +679,6 @@ $primarySolutions = [
         <div class="footer-brand">
             <img src="<?=h($logoOnDark)?>" alt="IZZY">
             <p><strong>IZZY</strong> es la solución de gestión empresarial de <strong>ES MULTISERVICIOS</strong>, diseñada para vender mejor, controlar más y crecer con una imagen profesional.</p>
-            <a class="footer-company-badge" href="<?=h($companyUrl)?>" target="_blank" rel="noopener">
-                <?=ui_icon('link')?> <span>Una solución de <strong>ES MULTISERVICIOS</strong></span>
-            </a>
         </div>
         <div class="footer-col">
             <h3>Navegación</h3>
@@ -683,11 +691,6 @@ $primarySolutions = [
             <?php if($whatsappEnabled): ?><a href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" target="_blank" rel="noopener"><?=ui_icon('whatsapp')?> <?=h($phone)?></a><?php endif; ?>
             <?php if($email&&filter_var($email,FILTER_VALIDATE_EMAIL)): ?><a href="mailto:<?=h($email)?>"><?=ui_icon('mail')?> <?=h($email)?></a><?php endif; ?>
             <span><?=ui_icon('location')?> San Pedro Sula, Honduras</span>
-        </div>
-        <div class="footer-col footer-company">
-            <h3>Empresa</h3>
-            <a href="<?=h($companyUrl)?>" target="_blank" rel="noopener"><?=ui_icon('link')?> Visitar ES MULTISERVICIOS</a>
-            <span>Software empresarial · Honduras</span>
         </div>
         <div class="footer-col">
             <h3>Redes sociales</h3>

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 const ROOT_DIR = __DIR__ . '/..';
 const UPLOAD_DIR = ROOT_DIR . '/uploads';
+require_once ROOT_DIR . '/core/EmailValidation.php';
 function h($value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -145,6 +146,102 @@ function public_form_antispam_config(array $settings): array {
         'turnstile_site_key'=>trim((string)($settings['turnstile_site_key']??'')),
         'turnstile_secret_stored'=>trim((string)($settings['turnstile_secret_key']??''))!=='',
     ];
+}
+
+function public_email_validation_config(array $settings): array {
+    return EmailValidation::config($settings);
+}
+
+function public_request_client_ip(): string {
+    $cloudflare=trim((string)($_SERVER['HTTP_CF_CONNECTING_IP']??''));
+    if($cloudflare!==''&&filter_var($cloudflare,FILTER_VALIDATE_IP))return $cloudflare;
+    $remote=trim((string)($_SERVER['REMOTE_ADDR']??''));
+    return filter_var($remote,FILTER_VALIDATE_IP)?$remote:'';
+}
+
+function public_form_ip_rate_file(): string {
+    $ip=public_request_client_ip();
+    if($ip==='')return '';
+    try {
+        $hash=hash_hmac('sha256',$ip,app_key());
+    } catch(Throwable $e) {
+        error_log('[IZZY Form Rate] Unable to derive anonymous client key: '.$e->getMessage());
+        return '';
+    }
+    $directory=rtrim(sys_get_temp_dir(),DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'izzy-public-form-rate';
+    if(!is_dir($directory)&&!@mkdir($directory,0700,true)&&!is_dir($directory))return '';
+    return $directory.DIRECTORY_SEPARATOR.$hash.'.json';
+}
+
+function public_form_ip_rate_status(array $config): string {
+    $file=public_form_ip_rate_file();
+    if($file==='')return 'unavailable';
+    $handle=@fopen($file,'c+');
+    if($handle===false)return 'unavailable';
+    try {
+        if(!flock($handle,LOCK_EX))return 'unavailable';
+        rewind($handle);
+        $raw=stream_get_contents($handle);
+        $sent=[];
+        if(is_string($raw)&&$raw!=='') {
+            $decoded=json_decode($raw,true);
+            if(is_array($decoded))$sent=array_map('intval',$decoded);
+        }
+        $now=time();
+        $sent=array_values(array_filter($sent,static fn(int $timestamp):bool=>$timestamp>$now-3600&&$timestamp<=$now));
+        $last=$sent?(int)end($sent):0;
+        if($last>0&&$now-$last<(int)$config['cooldown_seconds'])return 'cooldown';
+        if(count($sent)>=(int)$config['maximum_per_hour'])return 'hourly';
+        return 'ok';
+    } finally {
+        flock($handle,LOCK_UN);
+        fclose($handle);
+    }
+}
+
+function record_public_form_ip_submission(): void {
+    $file=public_form_ip_rate_file();
+    if($file==='')return;
+    $handle=@fopen($file,'c+');
+    if($handle===false)return;
+    try {
+        if(!flock($handle,LOCK_EX))return;
+        rewind($handle);
+        $raw=stream_get_contents($handle);
+        $sent=[];
+        if(is_string($raw)&&$raw!=='') {
+            $decoded=json_decode($raw,true);
+            if(is_array($decoded))$sent=array_map('intval',$decoded);
+        }
+        $now=time();
+        $sent=array_values(array_filter($sent,static fn(int $timestamp):bool=>$timestamp>$now-3600&&$timestamp<=$now));
+        $sent[]=$now;
+        ftruncate($handle,0);
+        rewind($handle);
+        fwrite($handle,json_encode(array_slice($sent,-50),JSON_UNESCAPED_SLASHES));
+        fflush($handle);
+    } finally {
+        flock($handle,LOCK_UN);
+        fclose($handle);
+    }
+}
+
+function public_form_is_obvious_automation(array $values): bool {
+    $text=trim(implode(' ',array_map(static fn($value):string=>(string)$value,$values)));
+    if($text==='')return false;
+    $plain=html_entity_decode(strip_tags($text),ENT_QUOTES|ENT_HTML5,'UTF-8');
+    $urlCount=preg_match_all('~(?:https?://|www\.)[^\s<]+~iu',$plain,$urls);
+    $urlCount=$urlCount===false?0:$urlCount;
+    if($urlCount>=5)return true;
+    if(preg_match('/(.)\1{11,}/u',$plain))return true;
+    if(preg_match('/\b(?:viagra|casino|crypto giveaway|adult traffic|buy followers|free backlinks)\b/iu',$plain))return true;
+    $words=preg_split('/\s+/u',trim($plain))?:[];
+    if(count($words)>=12) {
+        $normalized=array_map(static fn(string $word):string=>function_exists('mb_strtolower')?mb_strtolower(trim($word,'.,;:!?()[]{}<>'),'UTF-8'):strtolower(trim($word,'.,;:!?()[]{}<>')),$words);
+        $counts=array_count_values(array_filter($normalized,static fn(string $word):bool=>strlen($word)>=4));
+        if($counts&&max($counts)>=8)return true;
+    }
+    return false;
 }
 function issue_public_form_token(): string {
     if(session_status()!==PHP_SESSION_ACTIVE)return '';

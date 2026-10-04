@@ -35,6 +35,7 @@ copy_dir "install" "$DEPLOYPATH/install"
 
 # Configuración segura/versionada. Nunca sobrescribir configuración real de producción.
 copy_file "config/bootstrap.php" "$DEPLOYPATH/config/bootstrap.php"
+copy_file "config/disposable-email-domains.php" "$DEPLOYPATH/config/disposable-email-domains.php"
 copy_file "config/config.example.php" "$DEPLOYPATH/config/config.example.php"
 copy_file "config/database.example.php" "$DEPLOYPATH/config/database.example.php"
 copy_file "config/.htaccess" "$DEPLOYPATH/config/.htaccess"
@@ -42,6 +43,7 @@ copy_file "config/.htaccess" "$DEPLOYPATH/config/.htaccess"
 # Archivos raíz de la aplicación.
 copy_file "index.php" "$DEPLOYPATH/index.php"
 copy_file "estimate-submit.php" "$DEPLOYPATH/estimate-submit.php"
+copy_file "email-validate.php" "$DEPLOYPATH/email-validate.php"
 copy_file "robots.txt" "$DEPLOYPATH/robots.txt"
 copy_file "sitemap.xml" "$DEPLOYPATH/sitemap.xml"
 copy_file "schema.sql" "$DEPLOYPATH/schema.sql"
