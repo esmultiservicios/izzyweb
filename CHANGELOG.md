@@ -1,3 +1,10 @@
+# IZZY Web v1.0.99
+
+- Actualiza el botón flotante de WhatsApp al formato premium tipo píldora, con icono y texto visibles.
+- Mantiene fondo verde sólido, borde blanco, halo sutil y sombra ligera sin degradados.
+- Ajusta dimensiones y tipografía para escritorio y móvil sin afectar NIVO ni las redes sociales flotantes.
+- No requiere cambios de base de datos.
+
 ## v1.0.98 — validación avanzada de correo y protección antispam
 
 - Valida el correo en frontend y backend antes de aceptar el formulario público.

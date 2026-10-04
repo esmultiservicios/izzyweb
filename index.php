@@ -705,7 +705,7 @@ $primarySolutions = [
     </div>
 </footer>
 
-<?php if($whatsappEnabled): ?><a class="floating-wa" target="_blank" rel="noopener" href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" aria-label="WhatsApp"><?=ui_icon('whatsapp')?></a><?php endif; ?>
+<?php if($whatsappEnabled): ?><a class="floating-wa" target="_blank" rel="noopener" href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" aria-label="Contactar por WhatsApp"><span class="floating-wa-icon" aria-hidden="true"><?=ui_icon('whatsapp')?></span><span class="floating-wa-label">WhatsApp</span></a><?php endif; ?>
 <?php if($chatWidgetReady): ?>
 <?php if($chatWidgetMode==='url'): ?>
 <div class="nivo-floating chat-widget-position-<?=h($chatWidgetPosition)?>" data-nivo-widget>
