@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/../config/bootstrap.php';
 require_once __DIR__.'/emailTemplates.php';
+require_once __DIR__.'/EmailRecipientValidator.php';
 
 class EmailService
 {
@@ -77,12 +78,6 @@ class EmailService
         $destination=trim((string)($config['destinatario']??''));
         if($destination!==''&&!filter_var($destination,FILTER_VALIDATE_EMAIL))$problems[]='Internal destination must be a valid email address or remain empty.';
 
-        try {
-            self::normalizeAddressList($config['copia']??'');
-        } catch(RuntimeException $e) {
-            $problems[]=$e->getMessage();
-        }
-
         return $problems;
     }
 
@@ -145,43 +140,170 @@ class EmailService
         $problems=$this->configurationProblems($config);
         if($problems)return ['success'=>false,'message'=>'Email configuration is incomplete. '.implode(' ',$problems)];
 
-        $destination=trim($to)!==''?trim($to):self::effectiveInternalDestination($config);
-        if(!filter_var($destination,FILTER_VALIDATE_EMAIL)) {
-            return ['success'=>false,'message'=>'No valid destination email could be resolved for this configuration.'];
-        }
-
-        if($replyTo!==''&&!filter_var($replyTo,FILTER_VALIDATE_EMAIL)) {
+        if($replyTo!==''&&(!filter_var(trim($replyTo),FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n]/',$replyTo))) {
             return ['success'=>false,'message'=>'Reply-To must be a valid email address or remain empty.'];
         }
+        $replyTo=trim($replyTo);
 
         try {
-            $copies=array_merge(
-                self::normalizeAddressList($config['copia']??''),
-                self::normalizeAddressList($cc)
-            );
-            $blindCopies=self::normalizeAddressList($options['bcc']??[]);
             $attachments=$this->normalizeAttachments($options['attachments']??[]);
         } catch(RuntimeException $e) {
             return ['success'=>false,'message'=>$e->getMessage()];
         }
 
-        $uniqueCopies=[];
-        foreach($copies as $copy) {
-            if(strcasecmp($copy,$destination)===0)continue;
-            $uniqueCopies[strtolower($copy)]=$copy;
-        }
-        $copies=array_values($uniqueCopies);
+        $rawDestination=trim($to)!==''?$to:self::effectiveInternalDestination($config);
+        $toValidation=$this->validateRecipientCandidates(self::splitAddressCandidates($rawDestination),'to');
+        $ccValidation=$this->validateRecipientCandidates(
+            array_merge(
+                self::splitAddressCandidates($config['copia']??''),
+                self::splitAddressCandidates($cc)
+            ),
+            'cc'
+        );
+        $bccValidation=$this->validateRecipientCandidates(
+            self::splitAddressCandidates($options['bcc']??[]),
+            'bcc'
+        );
 
-        $uniqueBlindCopies=[];
-        foreach($blindCopies as $copy) {
-            if(strcasecmp($copy,$destination)===0||isset($uniqueCopies[strtolower($copy)]))continue;
-            $uniqueBlindCopies[strtolower($copy)]=$copy;
-        }
-        $blindCopies=array_values($uniqueBlindCopies);
+        $toRecipients=$toValidation['valid'];
+        $copies=$ccValidation['valid'];
+        $blindCopies=$bccValidation['valid'];
+        $rejected=array_merge(
+            $toValidation['rejected'],
+            $ccValidation['rejected'],
+            $bccValidation['rejected']
+        );
 
-        return strtoupper((string)$config['metodo_envio'])==='GRAPH'
-            ?$this->graph($config,$destination,$subject,$html,$replyTo,$copies,$blindCopies,$attachments)
-            :$this->smtp($config,$destination,$subject,$html,$replyTo,$copies,$blindCopies,$attachments);
+        // Remove duplicates while preserving recipient semantics.
+        $seen=[];
+        $toRecipients=self::deduplicateRecipients($toRecipients,$seen);
+        $copies=self::deduplicateRecipients($copies,$seen);
+        $blindCopies=self::deduplicateRecipients($blindCopies,$seen);
+
+        if(!$toRecipients&&!$copies&&!$blindCopies) {
+            return [
+                'success'=>false,
+                'message'=>'No valid destination email remained after recipient validation.',
+                'skipped_recipients'=>$rejected,
+            ];
+        }
+
+        $result=strtoupper((string)$config['metodo_envio'])==='GRAPH'
+            ?$this->graph($config,$toRecipients,$subject,$html,$replyTo,$copies,$blindCopies,$attachments)
+            :$this->smtp($config,$toRecipients,$subject,$html,$replyTo,$copies,$blindCopies,$attachments);
+
+        if($rejected) {
+            $result['skipped_recipients']=$rejected;
+            $result['message']=rtrim((string)($result['message']??'')).' '.count($rejected).' destinatario(s) inválido(s) fueron omitidos antes del envío.';
+        }
+
+        $result['accepted_recipients']=array_values(array_merge($toRecipients,$copies,$blindCopies));
+        return $result;
+    }
+
+    /** @return string[] */
+    private static function splitAddressCandidates(array|string|null $value): array
+    {
+        $items=is_array($value)?$value:[$value];
+        $candidates=[];
+
+        foreach($items as $item) {
+            if(is_array($item)) {
+                $candidates=array_merge($candidates,self::splitAddressCandidates($item));
+                continue;
+            }
+
+            foreach(preg_split('/[;,]+/',(string)$item)?:[] as $candidate) {
+                $candidate=trim($candidate);
+                if($candidate!=='')$candidates[]=$candidate;
+            }
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * @return array{valid:string[],rejected:array<int,array<string,mixed>>}
+     */
+    private function validateRecipientCandidates(array $candidates,string $kind): array
+    {
+        $valid=[];
+        $rejected=[];
+
+        foreach($candidates as $candidate) {
+            $check=EmailRecipientValidator::validate((string)$candidate);
+            if($check['valid']) {
+                $valid[]=$check['email'];
+                continue;
+            }
+
+            $entry=[
+                'type'=>$kind,
+                'email'=>$check['email'],
+                'code'=>$check['code'],
+                'reason'=>$check['reason'],
+                'suggestion'=>$check['suggestion'],
+            ];
+            $rejected[]=$entry;
+            $this->logRejectedRecipient($entry);
+        }
+
+        return ['valid'=>$valid,'rejected'=>$rejected];
+    }
+
+    /** @param array<string,bool> $seen @return string[] */
+    private static function deduplicateRecipients(array $recipients,array &$seen): array
+    {
+        $unique=[];
+        foreach($recipients as $recipient) {
+            $key=strtolower($recipient);
+            if(isset($seen[$key]))continue;
+            $seen[$key]=true;
+            $unique[]=$recipient;
+        }
+        return $unique;
+    }
+
+    /** @param array<string,mixed> $entry */
+    private function logRejectedRecipient(array $entry): void
+    {
+        $masked=self::maskEmailForLog((string)($entry['email']??''));
+        $reason=(string)($entry['reason']??'Recipient rejected.');
+        $type=(string)($entry['type']??'recipient');
+        $code=(string)($entry['code']??'invalid');
+        $suggestion=trim((string)($entry['suggestion']??''));
+
+        error_log(
+            '[IZZY Email] Recipient rejected ['.$type.'] '.$masked.' · '.$code.' · '.$reason
+            .($suggestion!==''?' Suggestion: '.self::maskEmailForLog($suggestion):'')
+        );
+
+        if(function_exists('log_activity')) {
+            log_activity('email_recipient_rejected','Skipped an invalid email recipient before delivery.',[
+                'recipient_type'=>$type,
+                'email_masked'=>$masked,
+                'reason_code'=>$code,
+                'reason'=>$reason,
+                'suggestion_masked'=>$suggestion!==''?self::maskEmailForLog($suggestion):null,
+            ]);
+        }
+    }
+
+    private static function maskEmailForLog(string $email): string
+    {
+        $email=trim($email);
+        if(!str_contains($email,'@'))return $email===''?'(empty)':'***';
+        [$local,$domain]=explode('@',$email,2);
+        $localMask=$local===''?'***':substr($local,0,1).'***';
+        return $localMask.'@'.$domain;
+    }
+
+    private static function containsAddress(array $addresses,string $needle): bool
+    {
+        foreach($addresses as $address) {
+            if(strcasecmp($address,$needle)===0)return true;
+        }
+        return false;
     }
 
     private static function uuidV4(): string
@@ -214,7 +336,7 @@ class EmailService
 
     private function graph(
         array $config,
-        string $to,
+        array $to,
         string $subject,
         string $html,
         string $replyTo,
@@ -253,8 +375,13 @@ class EmailService
         $message=[
             'subject'=>$subject,
             'body'=>['contentType'=>'HTML','content'=>$html],
-            'toRecipients'=>[['emailAddress'=>['address'=>$to]]],
         ];
+        if($to) {
+            $message['toRecipients']=array_map(
+                static fn(string $address):array=>['emailAddress'=>['address'=>$address]],
+                $to
+            );
+        }
         if($cc) {
             $message['ccRecipients']=array_map(
                 static fn(string $address):array=>['emailAddress'=>['address'=>$address]],
@@ -342,7 +469,7 @@ class EmailService
 
         $verifiedSentItem=false;
         $verificationAvailable=false;
-        if((int)($config['save_to_sent_items']??1)===1) {
+        if($to&&(int)($config['save_to_sent_items']??1)===1) {
             $query=http_build_query([
                 '$top'=>10,
                 '$select'=>'id,subject,toRecipients,sentDateTime',
@@ -368,7 +495,7 @@ class EmailService
                     if(!is_array($sentMessage)||strcasecmp((string)($sentMessage['subject']??''),$subject)!==0)continue;
                     foreach((array)($sentMessage['toRecipients']??[]) as $recipient) {
                         $address=(string)($recipient['emailAddress']['address']??'');
-                        if($address!==''&&strcasecmp($address,$to)===0) {
+                        if($address!==''&&self::containsAddress($to,$address)) {
                             $verifiedSentItem=true;
                             break 2;
                         }
@@ -378,8 +505,8 @@ class EmailService
         }
 
         $message=$verifiedSentItem
-            ?'Microsoft Graph aceptó el correo y se verificó en Elementos enviados. Destino: '.$to.'.'
-            :'Microsoft Graph aceptó el correo para envío. Destino: '.$to.'.';
+            ?'Microsoft Graph aceptó el correo y se verificó en Elementos enviados. Destino(s): '.implode(', ',$to).'.'
+            :'Microsoft Graph aceptó el correo para envío. Destino(s): '.implode(', ',$to).'.';
         if(!$verifiedSentItem&&$verificationAvailable) {
             $message.=' El elemento enviado todavía no apareció en la consulta inmediata; Microsoft 365 puede tardar unos segundos en procesarlo.';
         }
@@ -398,7 +525,7 @@ class EmailService
 
     private function smtp(
         array $config,
-        string $to,
+        array $to,
         string $subject,
         string $html,
         string $replyTo,
@@ -435,14 +562,14 @@ class EmailService
             $this->cmd($socket,base64_encode($user),[334]);
             $this->cmd($socket,base64_encode($password),[235]);
             $this->cmd($socket,'MAIL FROM:<'.$user.'>',[250]);
-            $this->cmd($socket,'RCPT TO:<'.$to.'>',[250,251]);
+            foreach($to as $recipient)$this->cmd($socket,'RCPT TO:<'.$recipient.'>',[250,251]);
             foreach($cc as $copy)$this->cmd($socket,'RCPT TO:<'.$copy.'>',[250,251]);
             foreach($bcc as $copy)$this->cmd($socket,'RCPT TO:<'.$copy.'>',[250,251]);
             $this->cmd($socket,'DATA',[354]);
 
             $headers=[
                 'From: '.$senderName.' <'.$user.'>',
-                'To: <'.$to.'>',
+                'To: '.($to?implode(', ',array_map(static fn(string $address):string=>'<'.$address.'>',$to)):'undisclosed-recipients:;'),
                 'Subject: =?UTF-8?B?'.base64_encode($subject).'?=',
                 'MIME-Version: 1.0',
             ];
