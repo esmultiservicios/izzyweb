@@ -46,7 +46,9 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             session_regenerate_id(true);
             sync_admin_session();
             $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND session_hash<>? AND revoked_at IS NULL')->execute([$row['id'],session_fingerprint()]);
-            flash('success','Password updated and your other sessions were signed out.');
+            revoke_remember_tokens_for_admin((int)$row['id']);
+            clear_remember_cookie(false);
+            flash('success','Password updated and your other sessions were signed out. Remembered access was revoked.');
             header('Location: profile.php');
             exit;
         }
@@ -61,6 +63,9 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         if($secret===''||!verify_totp($secret,$code))$error='The authenticator code is not valid. Generate a setup key and enter the current 6-digit code.';
         else {
             $pdo->prepare('UPDATE admin_users SET two_factor_secret_enc=?,two_factor_enabled=1 WHERE id=?')->execute([secret_encrypt($secret),$row['id']]);
+            $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND session_hash<>? AND revoked_at IS NULL')->execute([$row['id'],session_fingerprint()]);
+            revoke_remember_tokens_for_admin((int)$row['id']);
+            clear_remember_cookie(false);
             unset($_SESSION['escms_pending_totp_secret']);
             log_activity('2fa_enable','Enabled two-factor authentication');
             admin_notify('success','Two-factor authentication enabled','Two-factor authentication was enabled for '.$row['username'].'.','profile.php');
@@ -70,6 +75,9 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         }
     } elseif($action==='disable_2fa') {
         $pdo->prepare('UPDATE admin_users SET two_factor_secret_enc=NULL,two_factor_enabled=0 WHERE id=?')->execute([$row['id']]);
+        $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND session_hash<>? AND revoked_at IS NULL')->execute([$row['id'],session_fingerprint()]);
+        revoke_remember_tokens_for_admin((int)$row['id']);
+        clear_remember_cookie(false);
         unset($_SESSION['escms_pending_totp_secret']);
         log_activity('2fa_disable','Disabled two-factor authentication');
         admin_notify('warning','Two-factor authentication disabled','Two-factor authentication was disabled for '.$row['username'].'.','profile.php');

@@ -108,6 +108,11 @@ $adminPreview=!empty($_SESSION['escms_admin_id'])&&($_GET['preview']??'')==='1';
 $catalog=social_platform_catalog();
 $systemAccessEnabled=($settings['system_access_enabled']??'1')==='1';
 $systemAccessUrl=trim((string)($settings['system_access_url']??'https://sistema.izzycloud.app/'));
+$systemAccessHref=$systemAccessUrl;
+if($systemAccessHref!==''&&preg_match('~/admin/login\.php(?:$|\?)~i',$systemAccessHref)) {
+    $separator=str_contains($systemAccessHref,'?')?'&':'?';
+    if(!preg_match('/(?:^|[?&])fresh=1(?:&|$)/',$systemAccessHref))$systemAccessHref.=$separator.'fresh=1';
+}
 $systemAccessLabel=trim((string)($settings['system_access_label']??'Ingresar a IZZY'));if($systemAccessLabel==='')$systemAccessLabel='Ingresar a IZZY';
 $systemAccessNewTab=($settings['system_access_new_tab']??'1')==='1';
 $plansShowImages=($settings['plans_show_images']??'0')==='1';
@@ -228,7 +233,7 @@ $primarySolutions = [
                     <a href="#<?=h((string)$navigationItem['anchor_id'])?>"><?=h((string)$navigationItem['navigation_label'])?></a>
                 <?php endif; ?>
             <?php endforeach; ?>
-            <?php if($systemAccessEnabled&&$systemAccessUrl!==''): ?><a class="portal-link" href="<?=h($systemAccessUrl)?>" <?=$systemAccessNewTab?'target="_blank" rel="noopener"':''?>>Ingresar a IZZY</a><?php endif; ?>
+            <?php if($systemAccessEnabled&&$systemAccessUrl!==''): ?><a class="portal-link" href="<?=h($systemAccessHref)?>" <?=$systemAccessNewTab?'target="_blank" rel="noopener"':''?>>Ingresar a IZZY</a><?php endif; ?>
             <?php foreach($landingNavigation as $navigationItem): ?>
                 <?php if(($navigationItem['navigation_style'] ?? 'link') === 'cta'): ?>
                     <a class="cta" href="#<?=h((string)$navigationItem['anchor_id'])?>"><?=h((string)$navigationItem['navigation_label'])?></a>

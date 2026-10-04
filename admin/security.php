@@ -17,18 +17,19 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             if(!$sess)throw new RuntimeException('Session not found.');
             if(($sess['role_key']??'')==='owner'&&!role_is_owner($me))throw new RuntimeException('Only the Owner can revoke an Owner session.');
             $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE id=?')->execute([$id]);
+            revoke_remember_tokens_for_admin((int)$sess['admin_id']);
             log_activity('session_revoke','Revoked an administrator session',['session_id'=>$id]);
             if(hash_equals($sess['session_hash'],session_fingerprint())) {
-                clear_remember_cookie();
-                $_SESSION=[];
-                session_destroy();
-                header('Location: login.php?revoked=1');
+                clear_admin_authentication_state(true,true);
+                header('Location: login.php?revoked=1',true,303);
                 exit;
             }
             flash('success','Session signed out.');
         } elseif($action==='revoke_others') {
             $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND session_hash<>? AND revoked_at IS NULL')->execute([(int)$me['id'],session_fingerprint()]);
-            flash('success','All your other sessions were signed out.');
+            revoke_remember_tokens_for_admin((int)$me['id']);
+            clear_remember_cookie(false);
+            flash('success','All your other sessions were signed out. Persistent remembered access was also revoked.');
         } elseif($action==='cleanup') {
             $pdo->exec('DELETE FROM admin_sessions WHERE last_seen_at < DATE_SUB(NOW(),INTERVAL 60 DAY) OR revoked_at IS NOT NULL');
             flash('success','Old session records cleaned up.');
@@ -120,13 +121,10 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             }
 
             // La base ya no existe. Eliminar del navegador cualquier acceso previo y cerrar la sesión actual.
-            clear_remember_cookie();
+            clear_remember_cookie(false);
             $_SESSION=[];
-            if(ini_get('session.use_cookies')) {
-                $params=session_get_cookie_params();
-                setcookie(session_name(),'',time()-42000,$params['path'],$params['domain'],$params['secure'],$params['httponly']);
-            }
-            session_destroy();
+            delete_php_session_cookie();
+            if(session_status()===PHP_SESSION_ACTIVE)session_destroy();
             header('Location: ../install/',true,303);
             exit;
         }

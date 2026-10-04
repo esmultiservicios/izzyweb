@@ -4,6 +4,11 @@ if(admin_count()===0) {
     header('Location: ../install/', true, 303);
     exit;
 }
+if(fresh_login_requested()) {
+    force_fresh_admin_login();
+    header('Location: login.php', true, 303);
+    exit;
+}
 if(is_logged_in()) {
     header('Location: dashboard.php');
     exit;
@@ -36,6 +41,8 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             $_SESSION['escms_2fa_pending_id']=(int)$row['id'];
             $_SESSION['escms_2fa_pending_user']=$row['username'];
             $_SESSION['escms_2fa_remember']=isset($_POST['remember_me'])?1:0;
+            $_SESSION['escms_2fa_started_at']=time();
+            $_SESSION['escms_2fa_session_started_at']=time();
             bind_session_to_current_installation();
             header('Location: two-factor.php');
             exit;
@@ -43,6 +50,7 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         session_regenerate_id(true);
         $_SESSION['escms_admin_id']=(int)$row['id'];
         $_SESSION['escms_admin_user']=$row['username'];
+        initialize_admin_session_lifetime();
         bind_session_to_current_installation();
         db()->prepare('UPDATE admin_users SET last_login_at=NOW(),last_login_ip=?,last_user_agent=? WHERE id=?')->execute([request_ip(),request_user_agent(),(int)$row['id']]);
         record_login_event((int)$row['id'],$u,true);
@@ -135,6 +143,19 @@ if(isset($_GET['disabled'])):
 endif;
 ?>
 <?php
+if(isset($_GET['logged_out'])):
+?>
+<div class="alert success">Sesión cerrada correctamente.</div><?php
+endif;
+?>
+<?php
+if(isset($_GET['expired'])):
+    $expiredReason=(string)$_GET['expired'];
+?>
+<div class="alert warning"><?=h(auth_expired_message($expiredReason))?></div><?php
+endif;
+?>
+<?php
 if($error):
 ?>
 
@@ -158,7 +179,7 @@ endif;
 <input type="checkbox" name="remember_me" value="1" <?=isset($_POST['remember_me'])?'checked':''?>>
 <span class="cms-check-box" aria-hidden="true">
 </span>
-<span class="cms-check-text"><strong>Recordarme</strong><small>Mantener esta sesión iniciada de forma segura durante 30 días.</small></span>
+<span class="cms-check-text"><strong>Recordarme</strong><small>Mantener el acceso dentro del periodo seguro de esta sesión. Por seguridad, se requiere autenticación nuevamente al alcanzar el límite máximo.</small></span>
 </label>
 <a href="forgot-password.php<?=filter_var($identity,FILTER_VALIDATE_EMAIL)?'?email='.rawurlencode($identity):''?>">¿Olvidaste tu contraseña?</a>
 </div>

@@ -1,19 +1,61 @@
 <?php
 declare(strict_types=1);
-session_start();
-require_once __DIR__ . '/../config/bootstrap.php';
-if (!config_ready()) {
-    header('Location: ../install/');
-    exit;
-}
-function remember_cookie_name(): string {
-    return 'escms_admin_remember';
-}
+
 function request_is_https(): bool {
     if(!empty($_SERVER['HTTPS'])&&strtolower((string)$_SERVER['HTTPS'])!=='off')return true;
     if((string)($_SERVER['SERVER_PORT']??'')==='443')return true;
     $forwarded=strtolower(trim((string)($_SERVER['HTTP_X_FORWARDED_PROTO']??'')));
     return $forwarded==='https';
+}
+
+// Session hardening: compatible with HTTPS production and HTTP localhost.
+@ini_set('session.use_strict_mode','1');
+@ini_set('session.use_only_cookies','1');
+@ini_set('session.cookie_httponly','1');
+@ini_set('session.cookie_samesite','Lax');
+@ini_set('session.gc_maxlifetime','43200');
+session_set_cookie_params([
+    'lifetime'=>0,
+    'path'=>'/',
+    'secure'=>request_is_https(),
+    'httponly'=>true,
+    'samesite'=>'Lax',
+]);
+session_start();
+
+require_once __DIR__ . '/../config/bootstrap.php';
+if (!config_ready()) {
+    header('Location: ../install/');
+    exit;
+}
+
+function admin_idle_timeout_seconds(): int {
+    return 60*60;
+}
+function admin_absolute_timeout_seconds(): int {
+    return 12*60*60;
+}
+function remember_cookie_name(): string {
+    return 'escms_admin_remember';
+}
+function request_is_ajax_or_json(): bool {
+    if(strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest')return true;
+    $accept=strtolower((string)($_SERVER['HTTP_ACCEPT']??''));
+    if(str_contains($accept,'application/json'))return true;
+    $contentType=strtolower((string)($_SERVER['CONTENT_TYPE']??''));
+    return str_contains($contentType,'application/json');
+}
+function fresh_login_requested(): bool {
+    return isset($_GET['fresh'])&&in_array(strtolower(trim((string)$_GET['fresh'])),['1','true','yes'],true);
+}
+function request_ip(): string {
+    return substr((string)($_SERVER['REMOTE_ADDR']??''),0,64);
+}
+function request_user_agent(): string {
+    return substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);
+}
+function session_fingerprint(): string {
+    return hash('sha256',session_id());
 }
 function ensure_remember_token_storage(): void {
     db()->exec("CREATE TABLE IF NOT EXISTS admin_remember_tokens (
@@ -40,6 +82,109 @@ function set_remember_cookie(string $value,int $expires): void {
     if($value==='')unset($_COOKIE[remember_cookie_name()]);
     else $_COOKIE[remember_cookie_name()]=$value;
 }
+function delete_php_session_cookie(): void {
+    if(!ini_get('session.use_cookies'))return;
+    $params=session_get_cookie_params();
+    setcookie(session_name(),'',[
+        'expires'=>time()-42000,
+        'path'=>$params['path']?:'/',
+        'domain'=>$params['domain']??'',
+        'secure'=>(bool)($params['secure']??request_is_https()),
+        'httponly'=>(bool)($params['httponly']??true),
+        'samesite'=>$params['samesite']??'Lax',
+    ]);
+}
+function revoke_remember_tokens_for_admin(int $adminId): void {
+    if($adminId<=0)return;
+    try {
+        ensure_remember_token_storage();
+        db()->prepare('DELETE FROM admin_remember_tokens WHERE admin_id=?')->execute([$adminId]);
+    } catch(Throwable $e) {
+        error_log('IZZY remember-token revoke error: '.$e->getMessage());
+    }
+}
+function clear_remember_cookie(bool $deleteDatabaseToken=true): void {
+    $name=remember_cookie_name();
+    if($deleteDatabaseToken&&!empty($_COOKIE[$name])) {
+        $parts=explode(':',(string)$_COOKIE[$name],2);
+        if(count($parts)===2&&preg_match('/^[a-f0-9]{18}$/',$parts[0])) {
+            try {
+                ensure_remember_token_storage();
+                db()->prepare('DELETE FROM admin_remember_tokens WHERE selector=?')->execute([$parts[0]]);
+            } catch(Throwable $e) {
+                error_log('IZZY remember-token clear error: '.$e->getMessage());
+            }
+        }
+    }
+    set_remember_cookie('',time()-3600);
+}
+function revoke_current_session_record(): void {
+    if(session_status()!==PHP_SESSION_ACTIVE||session_id()==='')return;
+    try {
+        db()->prepare('UPDATE admin_sessions SET revoked_at=COALESCE(revoked_at,NOW()) WHERE session_hash=?')->execute([session_fingerprint()]);
+    } catch(Throwable $e) {
+        error_log('IZZY session revoke error: '.$e->getMessage());
+    }
+}
+function initialize_admin_session_lifetime(?int $startedAt=null,?int $lastActivity=null): void {
+    $now=time();
+    $startedAt=$startedAt??$now;
+    $lastActivity=$lastActivity??$now;
+    $_SESSION['escms_session_started_at']=$startedAt;
+    $_SESSION['escms_session_last_activity']=$lastActivity;
+}
+function clear_admin_authentication_state(bool $revokePersistent=true,bool $destroyPhpSession=true): void {
+    $adminId=(int)($_SESSION['escms_admin_id']??$_SESSION['escms_2fa_pending_id']??0);
+    if(!empty($_SESSION['escms_admin_id']))revoke_current_session_record();
+    if($revokePersistent&&$adminId>0)revoke_remember_tokens_for_admin($adminId);
+    clear_remember_cookie($revokePersistent);
+
+    $_SESSION=[];
+    if($destroyPhpSession) {
+        delete_php_session_cookie();
+        if(session_status()===PHP_SESSION_ACTIVE)@session_destroy();
+    } else {
+        session_regenerate_id(true);
+    }
+}
+function auth_expired_message(string $reason): string {
+    return match($reason) {
+        'idle'=>'Tu sesión venció después de 60 minutos de inactividad. Inicia sesión nuevamente por seguridad.',
+        'absolute'=>'Tu sesión alcanzó el límite máximo de 12 horas. Inicia sesión nuevamente por seguridad.',
+        'revoked'=>'Esta sesión administrativa fue revocada. Inicia sesión nuevamente.',
+        'security'=>'Por seguridad necesitamos que vuelvas a autenticarte.',
+        '2fa'=>'La verificación de dos pasos venció. Inicia sesión nuevamente.',
+        default=>'Tu sesión venció por seguridad. Inicia sesión nuevamente.',
+    };
+}
+function respond_auth_required(string $reason='security'): never {
+    if(request_is_ajax_or_json()) {
+        http_response_code(401);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success'=>false,
+            'error'=>'authentication_required',
+            'reason'=>$reason,
+            'message'=>auth_expired_message($reason),
+            'login_url'=>'login.php?expired='.rawurlencode($reason),
+        ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    header('Location: login.php?expired='.rawurlencode($reason),true,303);
+    exit;
+}
+function expire_admin_session(string $reason): never {
+    clear_admin_authentication_state(true,true);
+    respond_auth_required($reason);
+}
+function force_fresh_admin_login(): void {
+    // Reauthentication intentionally revokes the current admin session and persistent token.
+    clear_admin_authentication_state(true,false);
+    $_SESSION['cms_login_notice']=[
+        'type'=>'info',
+        'message'=>'La sesión administrativa anterior se cerró. Ingresa nuevamente para continuar de forma segura.',
+    ];
+}
 function current_install_generation(): string {
     static $generation=null;
     if($generation!==null)return $generation;
@@ -57,42 +202,28 @@ function invalidate_session_from_previous_installation(): void {
     $generation=current_install_generation();
     if($generation==='')return;
     if(hash_equals($generation,(string)($_SESSION['escms_install_generation']??'')))return;
-    unset(
-        $_SESSION['escms_admin_id'],
-        $_SESSION['escms_admin_user'],
-        $_SESSION['escms_2fa_pending_id'],
-        $_SESSION['escms_2fa_pending_user'],
-        $_SESSION['escms_2fa_remember'],
-        $_SESSION['escms_install_generation'],
-        $_SESSION['csrf']
-    );
-    clear_remember_cookie();
-    session_regenerate_id(true);
+    clear_admin_authentication_state(true,false);
 }
-function clear_remember_cookie(): void {
-    $name=remember_cookie_name();
-    if(!empty($_COOKIE[$name])) {
-        $parts=explode(':',(string)$_COOKIE[$name],2);
-        if(count($parts)===2) {
-            try {
-                ensure_remember_token_storage();
-                db()->prepare('DELETE FROM admin_remember_tokens WHERE selector=?')->execute([$parts[0]]);
-            } catch(Throwable $e) {
-            }
-        }
-    }
-    set_remember_cookie('',time()-3600);
-}
-function create_remember_token(int $adminId): bool {
+function create_remember_token(int $adminId,?int $sessionStartedAt=null): bool {
     try {
         ensure_remember_token_storage();
+        $sessionStartedAt=$sessionStartedAt??(int)($_SESSION['escms_session_started_at']??time());
+        $absoluteExpiry=$sessionStartedAt+admin_absolute_timeout_seconds();
+        $expires=min(time()+60*60*24*30,$absoluteExpiry);
+        if($expires<=time())return false;
+
         $selector=bin2hex(random_bytes(9));
         $validator=bin2hex(random_bytes(32));
         $hash=hash('sha256',$validator);
-        $expires=time()+60*60*24*30;
         db()->prepare('DELETE FROM admin_remember_tokens WHERE admin_id=? OR expires_at<NOW()')->execute([$adminId]);
-        $insert=db()->prepare('INSERT INTO admin_remember_tokens(admin_id,selector,token_hash,expires_at) VALUES(?,?,?,?)');
-        $insert->execute([$adminId,$selector,$hash,date('Y-m-d H:i:s',$expires)]);
+        $insert=db()->prepare('INSERT INTO admin_remember_tokens(admin_id,selector,token_hash,expires_at,created_at) VALUES(?,?,?,?,?)');
+        $insert->execute([
+            $adminId,
+            $selector,
+            $hash,
+            date('Y-m-d H:i:s',$expires),
+            date('Y-m-d H:i:s',$sessionStartedAt),
+        ]);
         if(!$insert->rowCount())return false;
         set_remember_cookie($selector.':'.$validator,$expires);
         return true;
@@ -108,39 +239,75 @@ function try_remember_login(): void {
         clear_remember_cookie();
         return;
     }
-    [$selector,
-    $validator]=$parts;
+    [$selector,$validator]=$parts;
     if(!preg_match('/^[a-f0-9]{18}$/',$selector)||!preg_match('/^[a-f0-9]{64}$/',$validator)) {
         clear_remember_cookie();
         return;
     }
     try {
         ensure_remember_token_storage();
-        $st=db()->prepare('SELECT t.admin_id,t.token_hash,u.username FROM admin_remember_tokens t JOIN admin_users u ON u.id=t.admin_id AND u.active=1 WHERE t.selector=? AND t.expires_at>NOW() LIMIT 1');
+        $st=db()->prepare('SELECT t.admin_id,t.token_hash,t.created_at,t.expires_at,u.username FROM admin_remember_tokens t JOIN admin_users u ON u.id=t.admin_id AND u.active=1 WHERE t.selector=? AND t.expires_at>NOW() LIMIT 1');
         $st->execute([$selector]);
         $row=$st->fetch();
         if(!$row||!hash_equals((string)$row['token_hash'],hash('sha256',$validator))) {
             clear_remember_cookie();
             return;
         }
+        $startedAt=strtotime((string)$row['created_at']);
+        if(!$startedAt||time()-$startedAt>=admin_absolute_timeout_seconds()) {
+            revoke_remember_tokens_for_admin((int)$row['admin_id']);
+            clear_remember_cookie(false);
+            return;
+        }
+
+        // Remember-me may restore only the SAME security window. It cannot bypass
+        // the 60-minute inactivity timeout or the 12-hour absolute lifetime.
+        $sessionCheck=db()->prepare('SELECT last_seen_at,revoked_at FROM admin_sessions WHERE admin_id=? AND created_at=? ORDER BY id DESC LIMIT 1');
+        $sessionCheck->execute([(int)$row['admin_id'],date('Y-m-d H:i:s',$startedAt)]);
+        $persistedSession=$sessionCheck->fetch();
+        $persistedLastSeen=$persistedSession?strtotime((string)$persistedSession['last_seen_at']):false;
+        if(!$persistedSession||!empty($persistedSession['revoked_at'])||!$persistedLastSeen||time()-$persistedLastSeen>=admin_idle_timeout_seconds()) {
+            revoke_remember_tokens_for_admin((int)$row['admin_id']);
+            clear_remember_cookie(false);
+            return;
+        }
+
         session_regenerate_id(true);
         $_SESSION['escms_admin_id']=(int)$row['admin_id'];
         $_SESSION['escms_admin_user']=$row['username'];
+        initialize_admin_session_lifetime($startedAt,time());
         bind_session_to_current_installation();
-        // Rotar el token al recuperar la sesión: mantiene los 30 días sin reutilizar el mismo secreto.
-        create_remember_token((int)$row['admin_id']);
+        // Rotate the secret without changing the original absolute session start.
+        create_remember_token((int)$row['admin_id'],$startedAt);
     } catch(Throwable $e) {
         error_log('IZZY remember-login error: '.$e->getMessage());
     }
 }
-function request_ip(): string {
-    return substr((string)($_SERVER['REMOTE_ADDR']??''),0,64);
-}
-function request_user_agent(): string {
-    return substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);
-}
-function session_fingerprint(): string {
-    return hash('sha256',session_id());
+function enforce_admin_session_lifetime(): void {
+    if(empty($_SESSION['escms_admin_id']))return;
+    $now=time();
+    $startedAt=(int)($_SESSION['escms_session_started_at']??0);
+    $lastActivity=(int)($_SESSION['escms_session_last_activity']??0);
+
+    // Migrate an already-open legacy session from the persisted session record once.
+    if($startedAt<=0||$lastActivity<=0) {
+        try {
+            $st=db()->prepare('SELECT created_at,last_seen_at FROM admin_sessions WHERE session_hash=? LIMIT 1');
+            $st->execute([session_fingerprint()]);
+            $row=$st->fetch();
+            if($row) {
+                $startedAt=strtotime((string)$row['created_at'])?:0;
+                $lastActivity=strtotime((string)$row['last_seen_at'])?:0;
+            }
+        } catch(Throwable $e) {
+        }
+        if($startedAt<=0||$lastActivity<=0)expire_admin_session('security');
+        initialize_admin_session_lifetime($startedAt,$lastActivity);
+    }
+
+    if($now-$startedAt>=admin_absolute_timeout_seconds())expire_admin_session('absolute');
+    if($now-$lastActivity>=admin_idle_timeout_seconds())expire_admin_session('idle');
+    $_SESSION['escms_session_last_activity']=$now;
 }
 function sync_admin_session(): void {
     if(empty($_SESSION['escms_admin_id'])||session_status()!==PHP_SESSION_ACTIVE)return;
@@ -149,15 +316,18 @@ function sync_admin_session(): void {
         $st=db()->prepare('SELECT revoked_at FROM admin_sessions WHERE session_hash=? LIMIT 1');
         $st->execute([$hash]);
         $revoked=$st->fetchColumn();
-        if($revoked) {
-            $_SESSION=[];
-            clear_remember_cookie();
-            session_destroy();
-            header('Location: login.php?revoked=1');
-            exit;
-        }
-        db()->prepare('INSERT INTO admin_sessions(admin_id,session_hash,ip_address,user_agent,last_seen_at) VALUES(?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE admin_id=VALUES(admin_id),ip_address=VALUES(ip_address),user_agent=VALUES(user_agent),last_seen_at=NOW()')->execute([(int)$_SESSION['escms_admin_id'],$hash,request_ip(),request_user_agent()]);
+        if($revoked)expire_admin_session('revoked');
+
+        $startedAt=(int)($_SESSION['escms_session_started_at']??time());
+        db()->prepare('INSERT INTO admin_sessions(admin_id,session_hash,ip_address,user_agent,last_seen_at,created_at) VALUES(?,?,?,?,NOW(),?) ON DUPLICATE KEY UPDATE admin_id=VALUES(admin_id),ip_address=VALUES(ip_address),user_agent=VALUES(user_agent),last_seen_at=NOW()')->execute([
+            (int)$_SESSION['escms_admin_id'],
+            $hash,
+            request_ip(),
+            request_user_agent(),
+            date('Y-m-d H:i:s',$startedAt),
+        ]);
     } catch(Throwable $e) {
+        error_log('IZZY admin-session sync error: '.$e->getMessage());
     }
 }
 function record_login_event(?int $adminId,string $username,bool $success): void {
@@ -170,18 +340,19 @@ function is_logged_in(): bool {
     return !empty($_SESSION['escms_admin_id']);
 }
 function require_login(): void {
-    if(!is_logged_in()) {
-        header('Location: login.php');
-        exit;
-    }
+    if(!is_logged_in())respond_auth_required('security');
     try {
         $st=db()->prepare('SELECT active FROM admin_users WHERE id=?');
         $st->execute([(int)$_SESSION['escms_admin_id']]);
         if((int)$st->fetchColumn()!==1) {
-            $_SESSION=[];
-            clear_remember_cookie();
-            session_destroy();
-            header('Location: login.php?disabled=1');
+            clear_admin_authentication_state(true,true);
+            if(request_is_ajax_or_json()) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=UTF-8');
+                echo json_encode(['success'=>false,'error'=>'account_disabled','message'=>'La cuenta administradora está deshabilitada.'],JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            header('Location: login.php?disabled=1',true,303);
             exit;
         }
     } catch(Throwable $e) {
@@ -194,9 +365,15 @@ function csrf_token(): string {
 function verify_csrf(): void {
     if(!hash_equals($_SESSION['csrf']??'',(string)($_POST['csrf']??''))) {
         http_response_code(419);
+        if(request_is_ajax_or_json()) {
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(['success'=>false,'error'=>'invalid_session_token','message'=>'La sesión cambió o venció. Actualiza la página e inténtalo nuevamente.'],JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         exit('Invalid session token.');
     }
 }
+
 function flash(string $type,string $message):void {
     $_SESSION['flash']=compact('type','message');
 }
@@ -322,7 +499,8 @@ function resolved_public_asset(?string $path,string $fallback=''): string {
     return $fallback;
 }
 invalidate_session_from_previous_installation();
-try_remember_login();
+enforce_admin_session_lifetime();
+if(!fresh_login_requested())try_remember_login();
 sync_admin_session();
 function base32_encode_raw(string $data): string {
     $alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';

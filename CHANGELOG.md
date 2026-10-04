@@ -1,3 +1,14 @@
+# IZZY Web v1.0.101
+
+- Refuerza el ciclo de vida de autenticación administrativa con 60 minutos de inactividad y 12 horas de duración absoluta.
+- Endurece cookies PHP con HttpOnly, Secure bajo HTTPS, SameSite=Lax y session.use_strict_mode.
+- Evita que Recordarme reactive una sesión vencida por inactividad o reinicie artificialmente el límite máximo de 12 horas.
+- Revoca sesiones persistidas, tokens Recordarme y cookies cuando una sesión vence, se cierra manualmente, cambia la contraseña o se fuerza una reautenticación.
+- Agrega soporte `?fresh=1` para solicitar una autenticación administrativa nueva de forma explícita.
+- Las solicitudes AJAX/JSON sin sesión válida reciben HTTP 401 con una respuesta JSON en lugar de HTML de login.
+- Agrega expiración de 10 minutos al paso pendiente de autenticación de dos factores.
+- No requiere cambios de base de datos.
+
 # IZZY Web v1.0.99
 
 - Actualiza el botón flotante de WhatsApp al formato premium tipo píldora, con icono y texto visibles.

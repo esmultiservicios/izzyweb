@@ -31,6 +31,7 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             $pdo->prepare('UPDATE admin_users SET password_hash=? WHERE id=?')->execute([password_hash($p,PASSWORD_DEFAULT),(int)$reset['admin_id']]);
             $pdo->prepare('UPDATE admin_password_resets SET used_at=NOW() WHERE id=?')->execute([(int)$reset['id']]);
             $pdo->prepare('DELETE FROM admin_remember_tokens WHERE admin_id=?')->execute([(int)$reset['admin_id']]);
+            $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND revoked_at IS NULL')->execute([(int)$reset['admin_id']]);
             $pdo->commit();
             clear_remember_cookie();
             header('Location: login.php?reset=1');

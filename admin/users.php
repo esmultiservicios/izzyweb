@@ -57,6 +57,10 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
                 $sql.=' WHERE id=?';
                 $args[]=$id;
                 $pdo->prepare($sql)->execute($args);
+                if($password!==''||!$active) {
+                    $pdo->prepare('UPDATE admin_sessions SET revoked_at=NOW() WHERE admin_id=? AND revoked_at IS NULL')->execute([$id]);
+                    revoke_remember_tokens_for_admin($id);
+                }
                 log_activity('user_update','Updated administrator user',['user_id'=>$id]);
                 admin_notify('info','Administrator updated',$username.' was updated.','users.php');
                 flash('success','User updated.');

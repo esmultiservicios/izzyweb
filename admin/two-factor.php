@@ -9,6 +9,12 @@ if(!$id) {
     header('Location: login.php');
     exit;
 }
+$twoFactorStartedAt=(int)($_SESSION['escms_2fa_started_at']??0);
+if($twoFactorStartedAt<=0||time()-$twoFactorStartedAt>600) {
+    unset($_SESSION['escms_2fa_pending_id'],$_SESSION['escms_2fa_pending_user'],$_SESSION['escms_2fa_remember'],$_SESSION['escms_2fa_started_at'],$_SESSION['escms_2fa_session_started_at']);
+    header('Location: login.php?expired=2fa', true, 303);
+    exit;
+}
 $error='';
 $set=settings();
 $favicon=trim((string)($set['favicon_path']??($set['admin_logo_path']??'')));if($favicon==='')$favicon='assets/izzy/logo-mark.png';
@@ -18,7 +24,7 @@ $st=db()->prepare('SELECT id,username,two_factor_secret_enc,two_factor_enabled,a
 $st->execute([$id]);
 $row=$st->fetch();
 if(!$row||(int)$row['active']!==1||(int)$row['two_factor_enabled']!==1) {
-    unset($_SESSION['escms_2fa_pending_id'],$_SESSION['escms_2fa_pending_user'],$_SESSION['escms_2fa_remember']);
+    unset($_SESSION['escms_2fa_pending_id'],$_SESSION['escms_2fa_pending_user'],$_SESSION['escms_2fa_remember'],$_SESSION['escms_2fa_started_at'],$_SESSION['escms_2fa_session_started_at']);
     header('Location: login.php');
     exit;
 }
@@ -30,9 +36,11 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         session_regenerate_id(true);
         $_SESSION['escms_admin_id']=(int)$row['id'];
         $_SESSION['escms_admin_user']=$row['username'];
+        $sessionStartedAt=(int)($_SESSION['escms_2fa_session_started_at']??time());
+        initialize_admin_session_lifetime($sessionStartedAt,time());
         bind_session_to_current_installation();
         $remember=!empty($_SESSION['escms_2fa_remember']);
-        unset($_SESSION['escms_2fa_pending_id'],$_SESSION['escms_2fa_pending_user'],$_SESSION['escms_2fa_remember']);
+        unset($_SESSION['escms_2fa_pending_id'],$_SESSION['escms_2fa_pending_user'],$_SESSION['escms_2fa_remember'],$_SESSION['escms_2fa_started_at'],$_SESSION['escms_2fa_session_started_at']);
         db()->prepare('UPDATE admin_users SET last_login_at=NOW(),last_login_ip=?,last_user_agent=? WHERE id=?')->execute([request_ip(),request_user_agent(),(int)$row['id']]);
         record_login_event((int)$row['id'],$row['username'],true);
         log_activity('login_2fa','Administrator signed in with two-factor authentication');
