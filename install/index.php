@@ -16,7 +16,7 @@ if ((string)($_GET['reset_installer'] ?? '') === '1') {
     exit;
 }
 
-const CMS_INSTALLER_VERSION = '4.7.2';
+const CMS_INSTALLER_VERSION = '4.7.3';
 
 $root=dirname(__DIR__);
 $configDirectory=$root.'/config';
@@ -2163,6 +2163,370 @@ body.swal2-height-auto{
 </style>
 
 <link rel="stylesheet" href="../assets/installer-v1.0.27.css?v=1.0.27">
+<style id="izzy-installer-mobile-v473">
+/* v4.7.3 — mobile wizard: one step at a time, compact shell, internal vertical scroll */
+@media (max-width:720px){
+    html,body{
+        width:100%!important;
+        height:100%!important;
+        min-height:100%!important;
+        overflow:hidden!important;
+        background:#eef4f8!important;
+    }
+    body{
+        min-width:0!important;
+    }
+    .page{
+        width:100%!important;
+        height:100dvh!important;
+        min-height:0!important;
+        padding:8px!important;
+        display:block!important;
+        overflow:hidden!important;
+    }
+    .installer{
+        width:100%!important;
+        height:calc(100dvh - 16px)!important;
+        max-height:calc(100dvh - 16px)!important;
+        min-height:0!important;
+        margin:0!important;
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        grid-template-rows:64px minmax(0,1fr)!important;
+        grid-template-areas:"head" "main"!important;
+        gap:8px!important;
+        overflow:hidden!important;
+        background:transparent!important;
+        border:0!important;
+        border-radius:0!important;
+        box-shadow:none!important;
+    }
+    .installer::after{display:none!important}
+    .installer-head{
+        grid-area:head!important;
+        width:100%!important;
+        height:64px!important;
+        min-height:64px!important;
+        margin:0!important;
+        padding:8px 10px!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:space-between!important;
+        gap:8px!important;
+        border:1px solid #d6e3eb!important;
+        border-top:3px solid #0a91c7!important;
+        border-radius:18px!important;
+        background:#fff!important;
+        box-shadow:0 8px 22px rgba(8,42,80,.055)!important;
+    }
+    .installer-brand{
+        min-width:0!important;
+        display:flex!important;
+        align-items:center!important;
+        gap:9px!important;
+    }
+    .installer-brand img{
+        width:55px!important;
+        height:40px!important;
+        flex:0 0 auto!important;
+        object-fit:contain!important;
+    }
+    .installer-brand div{min-width:0!important}
+    .installer-brand p,
+    .installer-brand small{display:none!important}
+    .installer-brand strong{
+        display:block!important;
+        margin:0!important;
+        color:#0a315d!important;
+        font-size:15px!important;
+        line-height:1.1!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+    .installer-badge{
+        flex:0 0 auto!important;
+        min-height:34px!important;
+        padding:0 10px!important;
+        border-radius:12px!important;
+        font-size:9px!important;
+        line-height:1!important;
+        white-space:nowrap!important;
+    }
+
+    /* En teléfono mostramos solo el paso activo; el resumen lateral ya no roba espacio. */
+    .side{display:none!important}
+
+    .main{
+        grid-area:main!important;
+        width:100%!important;
+        height:100%!important;
+        min-height:0!important;
+        margin:0!important;
+        display:flex!important;
+        flex-direction:column!important;
+        overflow:hidden!important;
+        border:1px solid #d6e3eb!important;
+        border-radius:20px!important;
+        background:#fff!important;
+        box-shadow:0 10px 26px rgba(8,42,80,.055)!important;
+    }
+    .content-head{
+        flex:0 0 auto!important;
+        width:100%!important;
+        min-height:0!important;
+        padding:13px 14px 7px!important;
+        display:grid!important;
+        grid-template-columns:minmax(0,1fr) auto!important;
+        gap:8px!important;
+        align-items:start!important;
+    }
+    .content-head-copy{min-width:0!important}
+    .content-head .eyebrow{
+        margin:0 0 3px!important;
+        font-size:9px!important;
+        letter-spacing:.08em!important;
+    }
+    .content-head h1{
+        margin:0!important;
+        font-size:25px!important;
+        line-height:1.02!important;
+    }
+    .content-head p:not(.eyebrow){
+        margin:5px 0 0!important;
+        max-width:none!important;
+        font-size:10.5px!important;
+        line-height:1.35!important;
+    }
+    .content-step-pill{
+        min-height:30px!important;
+        margin:3px 0 0!important;
+        padding:0 9px!important;
+        font-size:8.5px!important;
+        border-radius:999px!important;
+    }
+    .content-progress{
+        flex:0 0 auto!important;
+        height:4px!important;
+        margin:0 14px 8px!important;
+    }
+    .step-panel{
+        flex:1 1 auto!important;
+        min-height:0!important;
+        height:auto!important;
+        display:flex!important;
+        flex-direction:column!important;
+        overflow:hidden!important;
+        border-top:0!important;
+    }
+    .scroll{
+        flex:1 1 auto!important;
+        min-height:0!important;
+        height:auto!important;
+        overflow-y:auto!important;
+        overflow-x:hidden!important;
+        overscroll-behavior:contain!important;
+        -webkit-overflow-scrolling:touch!important;
+        scrollbar-gutter:auto!important;
+        padding:0 14px 14px!important;
+    }
+    .step-title{display:none!important}
+    .step-guide{
+        grid-template-columns:34px minmax(0,1fr)!important;
+        gap:9px!important;
+        margin:0 0 9px!important;
+        padding:9px 10px!important;
+        border-radius:12px!important;
+    }
+    .step-guide-icon{
+        width:30px!important;
+        height:30px!important;
+        border-radius:9px!important;
+        font-size:12px!important;
+    }
+    .step-guide strong{font-size:11.5px!important;line-height:1.2!important}
+    .step-guide small{font-size:9.4px!important;line-height:1.3!important}
+    .detected-site-url{
+        grid-template-columns:32px minmax(0,1fr)!important;
+        gap:9px!important;
+        margin:0 0 10px!important;
+        padding:9px 10px!important;
+        border-radius:12px!important;
+    }
+    .detected-site-url-icon{
+        width:30px!important;
+        height:30px!important;
+        border-radius:9px!important;
+    }
+    .detected-site-url small{font-size:8px!important;line-height:1.2!important}
+    .detected-site-url strong{font-size:10.8px!important;line-height:1.25!important}
+    .detected-site-url p{font-size:9px!important;line-height:1.3!important}
+
+    .form-grid,
+    .form-grid.three,
+    .admin-grid-v26,
+    .smtp-grid-top,
+    .smtp-grid-middle,
+    .smtp-grid-bottom,
+    .graph-grid,
+    .method-grid,
+    .review,
+    .test-row{
+        grid-template-columns:1fr!important;
+        gap:9px!important;
+    }
+    .admin-grid-v26 .admin-full,
+    .admin-grid-v26 .admin-half,
+    .admin-grid-v26 .admin-username,
+    .admin-grid-v26 .admin-email,
+    .smtp-grid-top .smtp-server,
+    .smtp-grid-top .smtp-port,
+    .smtp-grid-top .smtp-security,
+    .graph-destination,
+    .db-password,
+    .db-create-notice{grid-column:1/-1!important}
+    .field{
+        min-width:0!important;
+        font-size:11.5px!important;
+    }
+    .field-label{
+        min-height:0!important;
+        font-size:11.5px!important;
+        line-height:1.25!important;
+    }
+    .field>input,
+    .field>select,
+    .password-wrap{margin-top:4px!important}
+    input,select{
+        width:100%!important;
+        min-height:44px!important;
+        height:44px!important;
+        padding:7px 11px!important;
+        border-radius:11px!important;
+        font-size:12.5px!important;
+    }
+    .password-wrap input{
+        padding-right:48px!important;
+    }
+    .password-toggle{
+        width:34px!important;
+        min-width:34px!important;
+        height:34px!important;
+        min-height:34px!important;
+        right:5px!important;
+        top:50%!important;
+        transform:translateY(-50%)!important;
+    }
+    .field small{
+        margin-top:3px!important;
+        font-size:9.3px!important;
+        line-height:1.3!important;
+    }
+    .notice,
+    .db-create-notice,
+    .email-fields,
+    .review-note,
+    .admin-safe-note,
+    .admin-security-summary{
+        margin-top:0!important;
+        padding:9px 10px!important;
+        border-radius:12px!important;
+    }
+    .db-create-notice{
+        grid-template-columns:32px minmax(0,1fr)!important;
+        gap:9px!important;
+    }
+    .db-create-notice .notice-icon{width:30px!important;height:30px!important}
+    .db-create-notice strong{font-size:10.8px!important}
+    .db-create-notice span:not(.notice-icon){font-size:9.2px!important;line-height:1.3!important}
+    .method{
+        min-height:0!important;
+        padding:9px 10px!important;
+        border-radius:12px!important;
+    }
+    .method strong{font-size:11.5px!important}
+    .method small{font-size:9.2px!important;line-height:1.3!important}
+    .email-fields{margin-top:9px!important}
+    .graph-help-card{grid-template-columns:1fr!important;gap:8px!important}
+    .review-card{
+        grid-template-columns:100px minmax(0,1fr)!important;
+        gap:8px!important;
+        padding:9px 10px!important;
+    }
+
+    .footer{
+        flex:0 0 auto!important;
+        position:relative!important;
+        inset:auto!important;
+        width:100%!important;
+        min-height:56px!important;
+        margin:0!important;
+        padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px))!important;
+        display:grid!important;
+        grid-template-columns:auto minmax(0,1fr)!important;
+        align-items:center!important;
+        gap:8px!important;
+        background:#fff!important;
+        border-top:1px solid #dde7ed!important;
+        box-shadow:0 -6px 18px rgba(17,52,80,.05)!important;
+    }
+    .footer > span{
+        grid-column:1!important;
+        font-size:8px!important;
+        line-height:1.2!important;
+    }
+    .footer > .button.secondary,
+    .footer > .installer-back{
+        grid-column:1!important;
+        min-width:94px!important;
+        width:auto!important;
+        justify-self:start!important;
+    }
+    .footer-right{
+        grid-column:2!important;
+        justify-self:stretch!important;
+        width:100%!important;
+        min-width:0!important;
+        margin:0!important;
+    }
+    .footer-right .button,
+    .footer-right button{
+        width:100%!important;
+        min-width:0!important;
+        min-height:42px!important;
+        padding:7px 12px!important;
+        border-radius:11px!important;
+        font-size:11.5px!important;
+    }
+}
+@media (max-width:420px){
+    .page{padding:5px!important}
+    .installer{
+        height:calc(100dvh - 10px)!important;
+        max-height:calc(100dvh - 10px)!important;
+        grid-template-rows:58px minmax(0,1fr)!important;
+        gap:5px!important;
+    }
+    .installer-head{
+        height:58px!important;
+        min-height:58px!important;
+        padding:6px 8px!important;
+        border-radius:15px!important;
+    }
+    .installer-brand img{width:49px!important;height:36px!important}
+    .installer-brand strong{font-size:13.5px!important}
+    .installer-badge{min-height:30px!important;padding:0 8px!important;font-size:8px!important}
+    .main{border-radius:16px!important}
+    .content-head{padding:10px 11px 6px!important}
+    .content-head h1{font-size:22px!important}
+    .content-head p:not(.eyebrow){font-size:9.6px!important}
+    .content-step-pill{min-height:27px!important;padding:0 7px!important;font-size:7.8px!important}
+    .content-progress{margin:0 11px 7px!important}
+    .scroll{padding:0 11px 10px!important}
+    input,select{min-height:42px!important;height:42px!important}
+    .footer{min-height:52px!important;padding:5px 8px calc(5px + env(safe-area-inset-bottom,0px))!important}
+}
+</style>
 </head>
 <body class="installer-step-<?=$step?>" data-installer-step="<?=$step?>" data-installer-has-state="<?=(!empty($state['step1'])||!empty($state['step2'])||!empty($state['step3']))?'1':'0'?>">
 <main class="page">
