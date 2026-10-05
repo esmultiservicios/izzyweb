@@ -89,7 +89,7 @@ function plan_variant(array $plan): array
 }
 
 $phone=trim((string)($settings['phone']??'+504 8913-6844'));
-$digits=preg_replace('/\D+/','',(string)($settings['phone_digits']??$phone));
+$digits=preg_replace('/\D+/','',(string)($settings['whatsapp_number']??$settings['phone_digits']??$phone));
 $email=trim((string)($settings['email']??'evelasquezn@esmultiservicios.com'));
 $whatsappEnabled=($settings['whatsapp_enabled']??'1')==='1'&&$digits!=='';
 $waMessage=trim((string)($settings['whatsapp_message']??'Hola, quiero conocer más sobre IZZY.'));
@@ -120,33 +120,24 @@ $chatWidgetEnabled=($settings['chat_widget_enabled']??$settings['nivo_widget_ena
 $chatWidgetProvider=trim((string)($settings['chat_widget_provider']??$settings['nivo_widget_title']??'NIVO Web Chat'));
 $chatWidgetTitle=trim((string)($settings['chat_widget_title']??$settings['nivo_widget_greeting']??'¿Necesitas ayuda?'));
 $chatWidgetSubtitle=trim((string)($settings['chat_widget_subtitle']??'Chatea con nosotros'));
-$chatWidgetModeRaw=(string)($settings['chat_widget_mode']??'embed');
-$chatWidgetMode=in_array($chatWidgetModeRaw,['url','embed'],true)?$chatWidgetModeRaw:'embed';
+$chatWidgetModeRaw=(string)($settings['chat_widget_mode']??'url');
+$chatWidgetMode=in_array($chatWidgetModeRaw,['url','embed'],true)?$chatWidgetModeRaw:'url';
 $chatWidgetUrl=trim((string)($settings['chat_widget_url']??$settings['nivo_widget_url']??''));
 $chatWidgetEmbed=trim((string)($settings['chat_widget_embed_code']??''));
-
-// Compatibilidad con configuraciones anteriores: la URL es opcional.
-// Si existe código de instalación válido y no hay URL, el sitio usa el embed
-// automáticamente aunque antes se hubiera guardado el modo URL / iframe.
-if($chatWidgetEmbed!=='' && $chatWidgetUrl===''){
-    $chatWidgetMode='embed';
-}elseif($chatWidgetUrl!=='' && $chatWidgetEmbed===''){
-    $chatWidgetMode='url';
-}
-
 $whatsappPosition=($settings['whatsapp_position']??'left')==='right'?'right':'left';
-$chatWidgetPosition=$settings['chat_widget_resolved_position']??($whatsappPosition==='right'?'left':'right');
-if($chatWidgetPosition===$whatsappPosition)$chatWidgetPosition=$whatsappPosition==='right'?'left':'right';
+$chatWidgetRequestedPosition=(string)($settings['chat_widget_position']??'right');
+if(!in_array($chatWidgetRequestedPosition,['left','right'],true))$chatWidgetRequestedPosition='right';
+$chatWidgetPosition=$chatWidgetRequestedPosition===$whatsappPosition
+    ?($whatsappPosition==='right'?'left':'right')
+    :$chatWidgetRequestedPosition;
+$floatingWidgetGap=max(8,min(40,(int)($settings['floating_widget_gap']??12)));
 $chatWidgetReady=$chatWidgetEnabled && (
     ($chatWidgetMode==='url' && $chatWidgetUrl!=='' && filter_var($chatWidgetUrl,FILTER_VALIDATE_URL) && str_starts_with(strtolower($chatWidgetUrl),'https://'))
     || ($chatWidgetMode==='embed' && $chatWidgetEmbed!=='')
 );
 $socialLinks=social_public_links();
-if(!$socialLinks){
-    $socialLinks=[
-        ['platform'=>'facebook','label'=>$catalog['facebook']['label'],'icon'=>$catalog['facebook']['icon'],'url'=>'https://www.facebook.com/esmultiserv'],
-        ['platform'=>'tiktok','label'=>$catalog['tiktok']['label'],'icon'=>$catalog['tiktok']['icon'],'url'=>'https://www.tiktok.com/@evelasquez91'],
-    ];
+if(!$socialLinks && (string)($settings['social_configured']??'0')!=='1') {
+    $socialLinks=social_default_links();
 }
 $landingSectionDefaults = [
     'inicio' => ['label'=>'Inicio','anchor_id'=>'inicio','navigation_label'=>'Inicio','show_in_navigation'=>1,'navigation_style'=>'link','sort_order'=>10,'active'=>1],
@@ -232,7 +223,7 @@ $primarySolutions = [
 <link rel="stylesheet" href="assets/ui-standards.css">
 <link rel="stylesheet" href="assets/action-icons.css">
 </head>
-<body>
+<body style="--floating-widget-gap:<?=h((string)$floatingWidgetGap)?>px">
 <header class="izzy-header">
     <div class="izzy-container izzy-nav">
         <a class="izzy-brand" href="#inicio"><img src="<?=h($logo)?>" alt="IZZY"><span><strong>IZZY</strong><small>Sistema de facturación</small></span></a>
@@ -720,7 +711,7 @@ $primarySolutions = [
     </div>
 </footer>
 
-<?php if($whatsappEnabled): ?><a class="floating-wa" target="_blank" rel="noopener" href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" aria-label="Contactar por WhatsApp"><span class="floating-wa-icon" aria-hidden="true"><?=ui_icon('whatsapp')?></span><span class="floating-wa-label">WhatsApp</span></a><?php endif; ?>
+<?php if($whatsappEnabled): ?><a class="floating-wa floating-wa-position-<?=h($whatsappPosition)?>" target="_blank" rel="noopener" href="https://wa.me/<?=$digits?>?text=<?=rawurlencode($waMessage)?>" aria-label="Contactar por WhatsApp"><span class="floating-wa-icon" aria-hidden="true"><?=ui_icon('whatsapp')?></span><span class="floating-wa-label">WhatsApp</span></a><?php endif; ?>
 <?php if($chatWidgetReady): ?>
 <?php if($chatWidgetMode==='url'): ?>
 <div class="nivo-floating chat-widget-position-<?=h($chatWidgetPosition)?>" data-nivo-widget>

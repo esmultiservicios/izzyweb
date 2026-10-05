@@ -12,6 +12,15 @@ function social_platform_catalog(): array
     ];
 }
 
+function social_default_links(): array
+{
+    $catalog=social_platform_catalog();
+    return [
+        ['platform'=>'facebook','label'=>$catalog['facebook']['label'],'icon'=>$catalog['facebook']['icon'],'url'=>'https://www.facebook.com/esmultiserv','sort_order'=>20,'active'=>1],
+        ['platform'=>'tiktok','label'=>$catalog['tiktok']['label'],'icon'=>$catalog['tiktok']['icon'],'url'=>'https://www.tiktok.com/@evelasquez91','sort_order'=>30,'active'=>1],
+    ];
+}
+
 function social_public_links(): array
 {
     try {

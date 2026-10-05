@@ -1,3 +1,21 @@
+## v1.0.105
+- Rediseña el módulo de Widgets flotantes con el estilo visual de referencia y secciones claras para WhatsApp y NIVO Web Chat.
+- WhatsApp ahora se configura por número (solo dígitos con código de país) y ya no depende de una URL.
+- NIVO usa Código de instalación como opción recomendada; la URL HTTPS queda totalmente opcional y solo se exige cuando se selecciona explícitamente el modo URL embebible.
+- Si WhatsApp y NIVO seleccionan el mismo lado, NIVO se mueve automáticamente al lado contrario y la posición efectiva queda guardada.
+- Refuerza el centrado absoluto del estado vacío del banner en Appearance > Quick preview.
+- No requiere cambios de base de datos.
+
+## v1.0.104
+- Corrige widget por código embed para que la URL siga siendo opcional.
+- Unifica WhatsApp y chat flotante en el mismo módulo administrativo.
+- Resuelve automáticamente conflictos de posición entre WhatsApp y NIVO/chat.
+- Hace configurable la posición de WhatsApp y la respeta en el sitio publicado.
+- Sincroniza el módulo de redes sociales con los enlaces legacy que ya se mostraban públicamente.
+- Website status ocupa el 100% del ancho en Settings.
+- Centra correctamente el estado vacío del banner en Appearance.
+- No requiere cambios de base de datos.
+
 # IZZY Web v1.0.101
 
 - Refuerza el ciclo de vida de autenticación administrativa con 60 minutos de inactividad y 12 horas de duración absoluta.

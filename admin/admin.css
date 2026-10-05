@@ -12856,90 +12856,227 @@ a:active{
     }
 }
 
+
 /* ==========================================================
-   v1.0.104 — Widget flotante: instalación premium y URL opcional
+   v1.0.104 — unified floating widgets + full-width status + centered preview
    ========================================================== */
-.chat-widget-help{
+#site-status{grid-column:1 / -1!important;width:100%!important;}
+.floating-widget-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0 0 18px;}
+.floating-widget-config-card{display:grid;gap:14px;padding:18px;border:1px solid #d6e4ee;border-radius:20px;background:#fbfdff;box-shadow:0 12px 28px rgba(10,48,88,.05);}
+.floating-widget-config-card--whatsapp{border-color:#bfe8cf;background:#f7fdf9;}
+.floating-widget-config-card--chat{border-color:#bcdff0;background:#f7fcff;}
+.floating-widget-config-head{display:flex;align-items:flex-start;gap:12px;}
+.floating-widget-config-head h3{margin:2px 0 4px;font-size:18px;color:#0b315d;}
+.floating-widget-config-head p{margin:0;color:#687d92;font-size:12px;}
+.floating-widget-config-icon{width:48px;height:48px;min-width:48px;border-radius:15px;display:grid;place-items:center;background:#e2f3fb;color:#087da8;font-size:10px;font-weight:950;letter-spacing:.05em;}
+.floating-widget-config-icon--wa{background:#dcf7e6;color:#0b9348;}
+.floating-widget-config-card textarea{min-height:86px;resize:vertical;}
+.chat-widget-admin .chat-source-grid{align-items:start;}
+.chat-widget-admin .chat-position-section{margin-top:8px;}
+.mini-banner.is-empty{display:flex!important;align-items:center!important;justify-content:center!important;min-height:190px!important;background:#edf4fa!important;text-align:center!important;}
+.mini-banner.is-empty .mini-banner-placeholder{width:100%!important;min-height:190px!important;height:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;padding:24px!important;text-align:center!important;}
+.mini-banner.is-empty .mini-banner-placeholder strong,.mini-banner.is-empty .mini-banner-placeholder span{width:100%!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important;}
+@media(max-width:860px){.floating-widget-admin-grid{grid-template-columns:1fr;}}
+
+/* ==========================================================
+   v1.0.105 — floating widgets reference layout + hard centered preview
+   ========================================================== */
+.floating-widgets-heading{
+    border-left:4px solid #0e9f9a;
+}
+.floating-widgets-form{
+    display:grid;
+    gap:18px;
+}
+.floating-widget-section{
+    display:grid;
+    gap:18px;
+}
+.floating-widget-section-title{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+}
+.floating-widget-section-title h2,
+.floating-external-widget-head h3,
+.widget-separation-section h3{
+    margin:0 0 4px;
+    color:#0a315e;
+}
+.floating-widget-section-title p,
+.floating-external-widget-head p,
+.widget-separation-section p{
+    margin:0;
+    color:#6a8095;
+}
+.widget-integrated-badge,
+.widget-status-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:30px;
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+}
+.widget-integrated-badge,
+.widget-status-pill.is-on{
+    color:#087a52;
+    background:#e9f8f1;
+    border:1px solid #c8eadc;
+}
+.widget-status-pill.is-off{
+    color:#6f7f8f;
+    background:#eef3f7;
+    border:1px solid #d9e3eb;
+}
+.floating-widget-toggle-row{
+    padding:14px 16px;
+    border:1px solid #cce4dc;
+    border-radius:17px;
+    background:#f7fcfa;
+}
+.floating-widget-toggle-row--compact{
+    margin-top:2px;
+}
+.floating-widget-field-grid{
+    align-items:start;
+}
+.floating-widget-field-grid label{
+    min-width:0;
+}
+.widget-help-banner{
     display:flex;
     align-items:flex-start;
     gap:14px;
-    padding:16px 18px;
-    border:1px solid #bfe1dc;
+    padding:15px 16px;
+    border:1px solid #bfe6de;
     border-radius:18px;
-    background:#f2faf8;
+    background:#f3fbfa;
 }
-.chat-widget-help-icon{
-    width:38px;
-    height:38px;
-    flex:0 0 38px;
+.widget-help-icon{
+    width:32px;
+    height:32px;
+    min-width:32px;
     display:grid;
     place-items:center;
-    border-radius:999px;
-    background:#0c8f7f;
+    border-radius:50%;
     color:#fff;
+    background:#15927e;
+    font-weight:950;
 }
-.chat-widget-help-icon svg{width:18px;height:18px}
-.chat-widget-help b{display:block;color:#123d5f;font-size:13px;margin-bottom:4px}
-.chat-widget-help p{margin:0;color:#607689;font-size:11px;line-height:1.55}
-.chat-widget-help code{
-    display:inline-block;
+.widget-help-banner b{
+    color:#0b315e;
+}
+.widget-help-banner p{
+    margin:4px 0 0;
+    color:#5f768c;
+    line-height:1.55;
+}
+.widget-help-banner code{
     padding:2px 6px;
     border-radius:7px;
-    background:#0b315e;
     color:#fff;
-    font-size:10px;
+    background:#0c315d;
 }
-.chat-widget-setup-grid{
+.floating-external-widget-card{
     display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:16px;
+    padding:18px;
+    border:1px solid #d7e4ee;
+    border-radius:20px;
+    background:#fbfdff;
+    box-shadow:0 12px 28px rgba(10,48,88,.045);
 }
-.chat-widget-setup-grid label,
-.chat-widget-full-field{display:grid;gap:7px}
-.chat-widget-setup-grid select{
-    width:100%;
-    min-height:48px;
-    border:1px solid #ccdce7;
-    border-radius:14px;
-    background:#fff;
-    color:#123854;
-    padding:0 42px 0 14px;
-    font:inherit;
-    font-weight:800;
+.floating-external-widget-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
 }
-.chat-widget-full-field{
-    padding:16px;
-    border:1px solid #d6e3eb;
-    border-radius:18px;
-    background:#fbfdfe;
+.chat-source-block[hidden]{
+    display:none!important;
 }
-.chat-widget-full-field textarea{
-    min-height:146px;
+.chat-source-block textarea{
+    min-height:150px;
     resize:vertical;
-    font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
     font-size:12px;
     line-height:1.55;
 }
-.optional-label,
-.recommended-label{
-    display:inline-flex;
-    align-items:center;
-    width:max-content;
-    margin-left:7px;
-    padding:3px 8px;
-    border-radius:999px;
-    vertical-align:middle;
-    font-size:9px;
-    font-weight:900;
-    letter-spacing:.04em;
-    text-transform:uppercase;
+.widget-separation-section{
+    display:grid;
+    gap:14px;
+    padding-top:4px;
+    border-top:1px solid #dce7ef;
 }
-.optional-label{background:#edf3f7;color:#617587}
-.recommended-label{background:#e4f6ef;color:#0c7a57}
-.chat-widget-form .field-hint{line-height:1.45}
+.widget-gap-field{
+    max-width:520px;
+}
+.widget-position-preview--reference{
+    min-height:130px;
+}
+.floating-widget-save-row{
+    margin-top:0;
+}
+.floating-widget-save-row button{
+    min-width:170px;
+}
 
-@media(max-width:780px){
-    .chat-widget-setup-grid{grid-template-columns:1fr}
-    .chat-widget-help{padding:14px}
-    .chat-widget-full-field{padding:14px}
+/* Quick preview: keep the empty banner content centered even if legacy rules win elsewhere. */
+.appearance-preview .mini-browser .mini-banner.is-empty{
+    position:relative!important;
+    display:grid!important;
+    place-items:center!important;
+    width:100%!important;
+    min-height:190px!important;
+    padding:0!important;
+    text-align:center!important;
+}
+.appearance-preview .mini-browser .mini-banner.is-empty .mini-banner-placeholder{
+    position:absolute!important;
+    inset:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:24px!important;
+    text-align:center!important;
+    transform:none!important;
+}
+.appearance-preview .mini-browser .mini-banner.is-empty .mini-banner-placeholder strong,
+.appearance-preview .mini-browser .mini-banner.is-empty .mini-banner-placeholder span{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    padding:0!important;
+    text-align:center!important;
+    transform:none!important;
+}
+
+@media(max-width:760px){
+    .floating-widget-section-title,
+    .floating-external-widget-head{
+        align-items:stretch;
+        flex-direction:column;
+    }
+    .widget-integrated-badge,
+    .widget-status-pill{
+        width:max-content;
+    }
+    .widget-help-banner{
+        padding:14px;
+    }
+    .floating-external-widget-card{
+        padding:14px;
+    }
 }

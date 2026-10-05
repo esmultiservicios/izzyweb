@@ -34,9 +34,13 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
             if(isset($_POST['remove_maintenance_image']))save_setting('maintenance_image_path','');
             flash('success','Website status updated.');
         } elseif($action==='whatsapp') {
+            $waNumber=preg_replace('/\D+/','',(string)($_POST['whatsapp_number']??($set['whatsapp_number']??$set['phone_digits']??$set['phone']??'')));
+            if(isset($_POST['whatsapp_enabled']) && ($waNumber==='' || strlen($waNumber)<8 || strlen($waNumber)>15))throw new RuntimeException('Enter a valid WhatsApp number including country code.');
             save_setting('whatsapp_enabled',isset($_POST['whatsapp_enabled'])?'1':'0');
+            save_setting('whatsapp_number',$waNumber);
             save_setting('whatsapp_message',trim((string)($_POST['whatsapp_message']??'')));
-            save_setting('whatsapp_position','left');
+            $waPosition=in_array($_POST['whatsapp_position']??'left',['left','right'],true)?(string)$_POST['whatsapp_position']:'left';
+            save_setting('whatsapp_position',$waPosition);
             flash('success','WhatsApp widget updated.');
         } elseif($action==='public_form') {
             $minimumCharacters=max(10,min(1000,(int)($_POST['form_message_min_characters']??30)));
@@ -291,7 +295,7 @@ endif;
 <div class="form-actions"><button>Guardar acceso al sistema</button></div>
 </form>
 </section>
-<section class="panel animate-in" id="site-status">
+<section class="panel wide animate-in" id="site-status">
 <div class="panel-heading">
 <div class="panel-icon"><?=icon('eye')?>
 </div>
@@ -371,11 +375,18 @@ endif;
 </span>
 </label>
 <div class="two-col">
+<label>WhatsApp number<input name="whatsapp_number" inputmode="numeric" maxlength="15" value="<?=h(preg_replace('/\D+/','',(string)($set['whatsapp_number']??$set['phone_digits']??$set['phone']??'')))?>" placeholder="50489136844"><small class="field-hint">Numbers only, including country code.</small></label>
+<label>Position
+<select name="whatsapp_position">
+<option value="left" <?=($set['whatsapp_position']??'left')==='left'?'selected':''?>>Bottom left</option>
+<option value="right" <?=($set['whatsapp_position']??'left')==='right'?'selected':''?>>Bottom right</option>
+</select>
+<small class="field-hint">If the chat widget requests the same side, IZZY automatically places the chat on the opposite side.</small>
+</label>
+</div>
 <label>Default message<textarea name="whatsapp_message"><?=h($set['whatsapp_message']??'')?>
 </textarea>
 </label>
-<label>Position<input value="Bottom left · reservado para WhatsApp" readonly><input type="hidden" name="whatsapp_position" value="left"><small class="field-hint">NIVO Web Chat usa el lado derecho para que ambos widgets nunca se superpongan.</small></label>
-</div>
 <div class="form-actions">
 <button>Save WhatsApp widget</button>
 </div>

@@ -50,6 +50,7 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         save_setting('social_location',$location);
         save_setting('social_show_desktop',$showDesktop?'1':'0');
         save_setting('social_show_mobile',$showMobile?'1':'0');
+        save_setting('social_configured','1');
         $pdo->exec('DELETE FROM social_links');
         $insert=$pdo->prepare('INSERT INTO social_links(platform,url,sort_order,active) VALUES(?,?,?,?)');
         foreach($rows as $row)$insert->execute([$row['platform'],$row['url']!==''?$row['url']:null,$row['sort_order'],$row['active']]);
@@ -75,13 +76,28 @@ try {
     $links=[];
     $error=$error?:'Social network storage is not available. Run database-update.sql first.';
 }
+$settings=settings();
 $byPlatform=[];
 foreach($links as $link)$byPlatform[(string)$link['platform']]=$link;
+if((string)($settings['social_configured']??'0')!=='1') {
+    foreach(social_default_links() as $defaultLink) {
+        $platform=(string)$defaultLink['platform'];
+        $existing=$byPlatform[$platform]??null;
+        if(!$existing || (trim((string)($existing['url']??''))==='' && (int)($existing['active']??0)===0)) {
+            $byPlatform[$platform]=[
+                'platform'=>$platform,
+                'url'=>$defaultLink['url'],
+                'sort_order'=>$defaultLink['sort_order'],
+                'active'=>1,
+            ];
+        }
+    }
+}
 $rows=[];
 foreach(array_keys($catalog) as $index=>$platform) {
     $rows[]=$byPlatform[$platform]??['platform'=>$platform,'url'=>'','sort_order'=>($index+1)*10,'active'=>0];
 }
-$settings=settings();
+
 $display=social_display_config($settings);
 $pageTitle='Redes sociales';
 $active='social';

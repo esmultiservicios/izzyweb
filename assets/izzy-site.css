@@ -2851,3 +2851,52 @@ body:has(.chat-widget-position-right) .floating-wa{left:18px!important;right:aut
     white-space:normal;
   }
 }
+
+
+/* ==========================================================
+   v1.0.104 — explicit floating widget lanes
+   ========================================================== */
+.floating-wa.floating-wa-position-left{left:max(18px,env(safe-area-inset-left,0px))!important;right:auto!important;}
+.floating-wa.floating-wa-position-right{right:max(18px,env(safe-area-inset-right,0px))!important;left:auto!important;}
+@media(max-width:650px){
+  .floating-wa.floating-wa-position-left{left:max(12px,env(safe-area-inset-left,0px))!important;right:auto!important;}
+  .floating-wa.floating-wa-position-right{right:max(12px,env(safe-area-inset-right,0px))!important;left:auto!important;}
+}
+
+/* ==========================================================
+   v1.0.105 — automatic opposite-side floating widgets
+   ========================================================== */
+.floating-wa,
+.nivo-floating{
+  --widget-gap:var(--floating-widget-gap,12px);
+}
+.floating-wa.floating-wa-position-left{
+  left:max(18px,env(safe-area-inset-left,0px))!important;
+  right:auto!important;
+}
+.floating-wa.floating-wa-position-right{
+  right:max(18px,env(safe-area-inset-right,0px))!important;
+  left:auto!important;
+}
+.nivo-floating.chat-widget-position-left{
+  left:max(18px,env(safe-area-inset-left,0px))!important;
+  right:auto!important;
+}
+.nivo-floating.chat-widget-position-right{
+  right:max(18px,env(safe-area-inset-right,0px))!important;
+  left:auto!important;
+}
+@media(max-width:650px){
+  .floating-wa.floating-wa-position-left{
+    left:max(12px,env(safe-area-inset-left,0px))!important;
+  }
+  .floating-wa.floating-wa-position-right{
+    right:max(12px,env(safe-area-inset-right,0px))!important;
+  }
+  .nivo-floating.chat-widget-position-left{
+    left:max(12px,env(safe-area-inset-left,0px))!important;
+  }
+  .nivo-floating.chat-widget-position-right{
+    right:max(12px,env(safe-area-inset-right,0px))!important;
+  }
+}
