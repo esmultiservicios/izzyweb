@@ -120,10 +120,20 @@ $chatWidgetEnabled=($settings['chat_widget_enabled']??$settings['nivo_widget_ena
 $chatWidgetProvider=trim((string)($settings['chat_widget_provider']??$settings['nivo_widget_title']??'NIVO Web Chat'));
 $chatWidgetTitle=trim((string)($settings['chat_widget_title']??$settings['nivo_widget_greeting']??'¿Necesitas ayuda?'));
 $chatWidgetSubtitle=trim((string)($settings['chat_widget_subtitle']??'Chatea con nosotros'));
-$chatWidgetModeRaw=(string)($settings['chat_widget_mode']??'url');
-$chatWidgetMode=in_array($chatWidgetModeRaw,['url','embed'],true)?$chatWidgetModeRaw:'url';
+$chatWidgetModeRaw=(string)($settings['chat_widget_mode']??'embed');
+$chatWidgetMode=in_array($chatWidgetModeRaw,['url','embed'],true)?$chatWidgetModeRaw:'embed';
 $chatWidgetUrl=trim((string)($settings['chat_widget_url']??$settings['nivo_widget_url']??''));
 $chatWidgetEmbed=trim((string)($settings['chat_widget_embed_code']??''));
+
+// Compatibilidad con configuraciones anteriores: la URL es opcional.
+// Si existe código de instalación válido y no hay URL, el sitio usa el embed
+// automáticamente aunque antes se hubiera guardado el modo URL / iframe.
+if($chatWidgetEmbed!=='' && $chatWidgetUrl===''){
+    $chatWidgetMode='embed';
+}elseif($chatWidgetUrl!=='' && $chatWidgetEmbed===''){
+    $chatWidgetMode='url';
+}
+
 $whatsappPosition=($settings['whatsapp_position']??'left')==='right'?'right':'left';
 $chatWidgetPosition=$settings['chat_widget_resolved_position']??($whatsappPosition==='right'?'left':'right');
 if($chatWidgetPosition===$whatsappPosition)$chatWidgetPosition=$whatsappPosition==='right'?'left':'right';

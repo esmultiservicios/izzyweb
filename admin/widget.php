@@ -10,16 +10,34 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $provider=trim((string)($_POST['chat_widget_provider']??'NIVO Web Chat'));
         $title=trim((string)($_POST['chat_widget_title']??'¿Necesitas ayuda?'));
         $subtitle=trim((string)($_POST['chat_widget_subtitle']??'Chatea con nosotros'));
-        $mode=in_array($_POST['chat_widget_mode']??'url',['url','embed'],true)?(string)$_POST['chat_widget_mode']:'url';
+        $requestedMode=in_array($_POST['chat_widget_mode']??'embed',['url','embed'],true)?(string)$_POST['chat_widget_mode']:'embed';
         $url=trim((string)($_POST['chat_widget_url']??''));
         $embed=trim((string)($_POST['chat_widget_embed_code']??''));
         $requestedPosition=in_array($_POST['chat_widget_position']??'auto',['auto','left','right'],true)?(string)$_POST['chat_widget_position']:'auto';
 
-        if($mode==='url' && $url!=='' && (!filter_var($url,FILTER_VALIDATE_URL) || !preg_match('~^https://~i',$url))){
+        if($url!=='' && (!filter_var($url,FILTER_VALIDATE_URL) || !preg_match('~^https://~i',$url))){
             throw new RuntimeException('La URL del chat debe ser una URL HTTPS completa.');
         }
-        if($enabled==='1' && $mode==='url' && $url==='') throw new RuntimeException('Agrega la URL HTTPS del chat antes de activarlo.');
-        if($enabled==='1' && $mode==='embed' && $embed==='') throw new RuntimeException('Pega el código embed que entrega tu proveedor de chat antes de activarlo.');
+
+        // La URL siempre es opcional. Si existe código de instalación y no hay URL,
+        // se utiliza automáticamente el modo embed aunque una configuración anterior
+        // hubiera quedado guardada como URL / iframe.
+        $mode=$requestedMode;
+        if($embed!=='' && $url===''){
+            $mode='embed';
+        }elseif($url!=='' && $embed===''){
+            $mode='url';
+        }
+
+        if($enabled==='1' && $url==='' && $embed===''){
+            throw new RuntimeException('Agrega una URL embebible o pega el código de instalación antes de activar el widget.');
+        }
+        if($enabled==='1' && $mode==='embed' && $embed===''){
+            throw new RuntimeException('Pega el código de instalación que entrega tu proveedor o selecciona URL embebible.');
+        }
+        if($enabled==='1' && $mode==='url' && $url===''){
+            throw new RuntimeException('Agrega la URL embebible o selecciona Código de instalación.');
+        }
 
         $whatsappPosition=($set['whatsapp_position']??'left')==='right'?'right':'left';
         if($requestedPosition==='auto'){
@@ -58,7 +76,11 @@ $active='widget';
 $whatsappPosition=($set['whatsapp_position']??'left')==='right'?'right':'left';
 $currentRequested=$set['chat_widget_position']??'auto';
 $currentResolved=$set['chat_widget_resolved_position']??($whatsappPosition==='right'?'left':'right');
-$widgetMode=$set['chat_widget_mode']??'url';
+$widgetMode=$set['chat_widget_mode']??'embed';
+$currentWidgetUrl=trim((string)($set['chat_widget_url']??$set['nivo_widget_url']??''));
+$currentWidgetEmbed=trim((string)($set['chat_widget_embed_code']??''));
+if($currentWidgetEmbed!=='' && $currentWidgetUrl==='') $widgetMode='embed';
+elseif($currentWidgetUrl!=='' && $currentWidgetEmbed==='') $widgetMode='url';
 require __DIR__.'/_header.php';
 ?>
 <div class="page-heading animate-in">
@@ -86,21 +108,27 @@ require __DIR__.'/_header.php';
       <span><b>Activar widget de chat</b><small>Si lo desactivas, la configuración queda guardada pero no aparece en el sitio.</small></span>
     </label>
 
-    <div class="three-col">
+    <div class="chat-widget-help">
+      <span class="chat-widget-help-icon"><?=icon('info')?></span>
+      <div><b>¿Dónde pego el código de NIVO?</b><p>En NIVO Web Chat usa <strong>“Código de instalación”</strong> y pega el snippet completo que comienza con <code>&lt;script</code> en el campo <strong>“Código de instalación”</strong>. La URL es opcional y solo se usa cuando un proveedor entrega una dirección HTTPS directa.</p></div>
+    </div>
+
+    <div class="chat-widget-setup-grid">
       <label>Proveedor / nombre<input name="chat_widget_provider" maxlength="80" value="<?=h($set['chat_widget_provider']??$set['nivo_widget_title']??'NIVO Web Chat')?>" placeholder="NIVO Web Chat"></label>
+      <label>Cómo se instala
+        <select name="chat_widget_mode">
+          <option value="embed" <?=$widgetMode==='embed'?'selected':''?>>Código de instalación (recomendado)</option>
+          <option value="url" <?=$widgetMode==='url'?'selected':''?>>URL embebible / iframe</option>
+        </select>
+        <small class="field-hint">Para NIVO selecciona “Código de instalación”.</small>
+      </label>
       <label>Título del launcher<input name="chat_widget_title" maxlength="100" value="<?=h($set['chat_widget_title']??$set['nivo_widget_greeting']??'¿Necesitas ayuda?')?>" placeholder="¿Necesitas ayuda?"></label>
       <label>Texto secundario<input name="chat_widget_subtitle" maxlength="120" value="<?=h($set['chat_widget_subtitle']??'Chatea con nosotros')?>" placeholder="Chatea con nosotros"></label>
     </div>
 
-    <div class="chat-widget-mode-grid">
-      <label class="chat-mode-card"><input type="radio" name="chat_widget_mode" value="url" <?=$widgetMode==='url'?'checked':''?>><span class="chat-mode-icon"><?=icon('link')?></span><span><b>URL / iframe</b><small>Para NIVO o chats que entregan una URL pública embebible.</small></span></label>
-      <label class="chat-mode-card"><input type="radio" name="chat_widget_mode" value="embed" <?=$widgetMode==='embed'?'checked':''?>><span class="chat-mode-icon"><?=icon('code')?></span><span><b>Código embed</b><small>Para proveedores que entregan un snippet de integración.</small></span></label>
-    </div>
+    <label class="chat-widget-full-field">URL embebible del widget <span class="optional-label">Opcional</span><input type="url" name="chat_widget_url" placeholder="https://..." value="<?=h($set['chat_widget_url']??$set['nivo_widget_url']??'')?>"><small class="field-hint">Úsala solo si el proveedor entrega una URL directa para embeber. No pegues aquí código &lt;script&gt;.</small></label>
 
-    <div class="chat-source-grid">
-      <label>URL HTTPS del chat<input type="url" name="chat_widget_url" placeholder="https://chat.tudominio.com/..." value="<?=h($set['chat_widget_url']??$set['nivo_widget_url']??'')?>"><small class="field-hint">Se usa cuando eliges URL / iframe.</small></label>
-      <label>Código embed del proveedor<textarea name="chat_widget_embed_code" rows="6" placeholder="<script ...></script> o <iframe ...></iframe>"><?=h($set['chat_widget_embed_code']??'')?></textarea><small class="field-hint">Úsalo únicamente con código entregado por un proveedor de chat confiable.</small></label>
-    </div>
+    <label class="chat-widget-full-field">Código de instalación <span class="recommended-label">Recomendado para NIVO</span><textarea name="chat_widget_embed_code" rows="6" placeholder="<script src=\"https://.../nivo-widget.js\" data-zynko-key=\"...\" async></script>"><?=h($set['chat_widget_embed_code']??'')?></textarea><small class="field-hint">Pega el código completo que entrega ZYNKO/NIVO. Este campo funciona sin necesidad de completar la URL.</small></label>
 
     <div class="chat-position-section">
       <div class="section-heading compact"><div><h3>Ubicación inteligente</h3><p class="muted">El widget nunca se colocará en el mismo lado que WhatsApp.</p></div></div>

@@ -12855,3 +12855,91 @@ a:active{
         height:580px;
     }
 }
+
+/* ==========================================================
+   v1.0.104 — Widget flotante: instalación premium y URL opcional
+   ========================================================== */
+.chat-widget-help{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:16px 18px;
+    border:1px solid #bfe1dc;
+    border-radius:18px;
+    background:#f2faf8;
+}
+.chat-widget-help-icon{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:#0c8f7f;
+    color:#fff;
+}
+.chat-widget-help-icon svg{width:18px;height:18px}
+.chat-widget-help b{display:block;color:#123d5f;font-size:13px;margin-bottom:4px}
+.chat-widget-help p{margin:0;color:#607689;font-size:11px;line-height:1.55}
+.chat-widget-help code{
+    display:inline-block;
+    padding:2px 6px;
+    border-radius:7px;
+    background:#0b315e;
+    color:#fff;
+    font-size:10px;
+}
+.chat-widget-setup-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+}
+.chat-widget-setup-grid label,
+.chat-widget-full-field{display:grid;gap:7px}
+.chat-widget-setup-grid select{
+    width:100%;
+    min-height:48px;
+    border:1px solid #ccdce7;
+    border-radius:14px;
+    background:#fff;
+    color:#123854;
+    padding:0 42px 0 14px;
+    font:inherit;
+    font-weight:800;
+}
+.chat-widget-full-field{
+    padding:16px;
+    border:1px solid #d6e3eb;
+    border-radius:18px;
+    background:#fbfdfe;
+}
+.chat-widget-full-field textarea{
+    min-height:146px;
+    resize:vertical;
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+    font-size:12px;
+    line-height:1.55;
+}
+.optional-label,
+.recommended-label{
+    display:inline-flex;
+    align-items:center;
+    width:max-content;
+    margin-left:7px;
+    padding:3px 8px;
+    border-radius:999px;
+    vertical-align:middle;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+}
+.optional-label{background:#edf3f7;color:#617587}
+.recommended-label{background:#e4f6ef;color:#0c7a57}
+.chat-widget-form .field-hint{line-height:1.45}
+
+@media(max-width:780px){
+    .chat-widget-setup-grid{grid-template-columns:1fr}
+    .chat-widget-help{padding:14px}
+    .chat-widget-full-field{padding:14px}
+}
