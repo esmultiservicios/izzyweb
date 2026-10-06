@@ -114,17 +114,17 @@ $pageTitle='Videos'; $active='videos'; require __DIR__.'/_header.php';
         <h1>Manage videos</h1>
         <p class="muted">Add as many videos as needed. YouTube or Vimeo is recommended for streaming, but direct MP4/WEBM upload is also supported.</p>
     </div>
-    <a class="button secondary" href="videos.php">New video</a>
+    <button type="button" class="button secondary" data-new-video>New video</button>
 </div>
 
 <?php if($edit): ?>
-<section class="panel admin-video-current-preview animate-in">
+<section class="panel admin-video-current-preview animate-in" data-current-video-preview>
     <?php render_admin_video_preview($edit,'CURRENT VIDEO PREVIEW'); ?>
 </section>
 <?php endif; ?>
 
 <section class="panel animate-in">
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" data-video-form>
     <input type="hidden" name="csrf" value="<?=h(csrf_token())?>">
     <input type="hidden" name="action" value="save">
     <input type="hidden" name="id" value="<?=h((string)($edit['id']??0))?>">
@@ -163,7 +163,7 @@ $pageTitle='Videos'; $active='videos'; require __DIR__.'/_header.php';
             <div class="upload-preview premium-upload-preview" data-upload-preview></div>
         </div>
         <?php if(!empty($edit['file_path'])): ?>
-            <div class="current-media-file">
+            <div class="current-media-file" data-current-video-file>
                 <span class="current-media-icon" aria-hidden="true">▶</span>
                 <div><strong>Current uploaded video</strong><small><?=h($edit['file_path'])?></small></div>
             </div>
@@ -189,7 +189,7 @@ $pageTitle='Videos'; $active='videos'; require __DIR__.'/_header.php';
             </div>
         </div>
         <?php if(!empty($edit['poster_path'])): ?>
-            <div class="current-poster-card">
+            <div class="current-poster-card" data-current-video-poster>
                 <span class="current-media-label">Current cover</span>
                 <img src="../<?=h($edit['poster_path'])?>" alt="Current video poster">
                 <label class="check-row remove-media-check"><input type="checkbox" name="remove_poster"> Remove current cover when saving</label>
@@ -197,29 +197,133 @@ $pageTitle='Videos'; $active='videos'; require __DIR__.'/_header.php';
         <?php endif; ?>
     </div>
     <label class="check-row status-switch"><input type="checkbox" name="active" <?=!$edit||!empty($edit['active'])?'checked':''?>> Publish on website</label>
-    <div class="form-actions"><button>Save video</button><?php if($edit): ?><a class="button secondary" href="videos.php">Cancel</a><?php endif; ?></div>
+    <div class="form-actions">
+        <button>Save video</button>
+        <?php if($edit): ?><a class="button secondary" href="videos.php" data-video-cancel>Cancel</a><?php endif; ?>
+    </div>
 </form>
 </section>
 
-<div class="list-grid">
-<?php foreach($rows as $r): ?>
-<article class="list-card video-admin-list-card animate-in">
-    <?php render_admin_video_preview($r,'SAVED VIDEO'); ?>
-    <div class="video-admin-card-meta">
-        <div class="list-head"><div><strong><?=h($r['title'])?></strong><small><?=h(ucfirst($r['video_type']))?> · order <?=$r['sort_order']?></small></div></div>
-        <?php if(trim((string)$r['description'])!==''): ?><div class="rich-display"><?=cms_sanitize_rich_html((string)$r['description'])?></div><?php endif; ?>
-        <div class="actions"><details class="action-menu"><summary>Actions ▾</summary><nav class="action-menu-list"><a class="action-menu-item action-menu-item--edit" href="?edit=<?=$r['id']?>"><?=icon('edit')?> Edit</a><form method="post" data-swal-confirm="Delete this video?" data-swal-text="This action cannot be undone."><input type="hidden" name="csrf" value="<?=h(csrf_token())?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?=$r['id']?>"><button class="action-menu-item action-menu-item--danger" style="background:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important"><?=icon('trash')?> Delete</button></form></nav></details></div>
+<?php if($rows): ?>
+<section class="video-library-section animate-in" aria-labelledby="saved-videos-heading">
+    <div class="video-library-head">
+        <div>
+            <p class="eyebrow">SAVED VIDEOS</p>
+            <h2 id="saved-videos-heading">Video preview</h2>
+            <p class="muted">Review how each saved video looks, then edit or remove it from the actions menu.</p>
+        </div>
+        <span class="video-library-count"><?=count($rows)?> <?=count($rows)===1?'video':'videos'?></span>
     </div>
-</article>
-<?php endforeach; ?>
-</div>
+
+    <div class="video-library-grid">
+        <?php foreach($rows as $r): ?>
+        <article class="list-card video-admin-list-card animate-in">
+            <?php render_admin_video_preview($r,'SAVED VIDEO'); ?>
+            <div class="video-admin-card-meta">
+                <div class="list-head">
+                    <div>
+                        <strong><?=h($r['title'])?></strong>
+                        <small><?=h(ucfirst($r['video_type']))?> · order <?=$r['sort_order']?></small>
+                    </div>
+                </div>
+                <?php if(trim((string)$r['description'])!==''): ?>
+                    <div class="rich-display video-admin-description"><?=cms_sanitize_rich_html((string)$r['description'])?></div>
+                <?php endif; ?>
+                <div class="actions">
+                    <details class="action-menu">
+                        <summary>Actions ▾</summary>
+                        <nav class="action-menu-list">
+                            <a class="action-menu-item action-menu-item--edit" href="?edit=<?=$r['id']?>"><?=icon('edit')?> Edit</a>
+                            <form method="post" data-swal-confirm="Delete this video?" data-swal-text="This action cannot be undone.">
+                                <input type="hidden" name="csrf" value="<?=h(csrf_token())?>">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="<?=$r['id']?>">
+                                <button class="action-menu-item action-menu-item--danger" style="background:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important"><?=icon('trash')?> Delete</button>
+                            </form>
+                        </nav>
+                    </details>
+                </div>
+            </div>
+        </article>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <script>
 (function(){
+    const form=document.querySelector('[data-video-form]');
     const type=document.querySelector('[data-video-type]');
-    const url=document.querySelector('[data-video-url-wrap]');
+    const urlWrap=document.querySelector('[data-video-url-wrap]');
     const upload=document.querySelector('[data-video-upload-wrap]');
-    function sync(){ if(!type)return; const isUpload=type.value==='upload'; if(url)url.hidden=isUpload; if(upload)upload.hidden=!isUpload; }
-    if(type){ type.addEventListener('change',sync); sync(); }
+    const newVideoButton=document.querySelector('[data-new-video]');
+
+    function syncVideoType(){
+        if(!type)return;
+        const isUpload=type.value==='upload';
+        if(urlWrap)urlWrap.hidden=isUpload;
+        if(upload)upload.hidden=!isUpload;
+    }
+
+    function resetVideoForm(){
+        if(!form)return;
+
+        // Preserve the document viewport. Starting a new record must never feel
+        // like a reload or an automatic scroll to another part of the page.
+        const viewportX=window.scrollX;
+        const viewportY=window.scrollY;
+
+        form.reset();
+
+        const id=form.querySelector('input[name="id"]');
+        const currentFile=form.querySelector('input[name="current_file_path"]');
+        const currentPoster=form.querySelector('input[name="current_poster_path"]');
+        const title=form.querySelector('input[name="title"]');
+        const sortOrder=form.querySelector('input[name="sort_order"]');
+        const description=form.querySelector('textarea[name="description"]');
+        const videoUrl=form.querySelector('input[name="video_url"]');
+        const active=form.querySelector('input[name="active"]');
+        const richContent=form.querySelector('.cms-rich-text-content');
+
+        if(id)id.value='0';
+        if(currentFile)currentFile.value='';
+        if(currentPoster)currentPoster.value='';
+        if(title)title.value='';
+        if(sortOrder)sortOrder.value='0';
+        if(description)description.value='';
+        if(videoUrl)videoUrl.value='';
+        if(active)active.checked=true;
+        if(richContent)richContent.innerHTML='';
+
+        if(type){
+            type.value='youtube';
+            type.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+
+        form.querySelectorAll('input[type="file"]').forEach(input=>{
+            input.dispatchEvent(new CustomEvent('ui:clear-files'));
+        });
+
+        document.querySelector('[data-current-video-preview]')?.setAttribute('hidden','');
+        form.querySelector('[data-current-video-file]')?.setAttribute('hidden','');
+        form.querySelector('[data-current-video-poster]')?.setAttribute('hidden','');
+        form.querySelector('[data-video-cancel]')?.setAttribute('hidden','');
+
+        if(window.history?.replaceState){
+            window.history.replaceState({},document.title,'videos.php');
+        }
+
+        // Focus the first real field without allowing focus to move the viewport.
+        title?.focus({preventScroll:true});
+        requestAnimationFrame(()=>window.scrollTo({left:viewportX,top:viewportY,behavior:'auto'}));
+    }
+
+    if(type){
+        type.addEventListener('change',syncVideoType);
+        syncVideoType();
+    }
+
+    newVideoButton?.addEventListener('click',resetVideoForm);
 })();
 </script>
 <?php require __DIR__.'/_footer.php';

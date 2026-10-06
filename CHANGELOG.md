@@ -1,4 +1,20 @@
+## v1.0.107
+
+- El menú lateral inicia arriba al entrar a una sesión administrativa nueva y conserva la posición exacta mientras se navega entre módulos.
+- Se elimina la restauración persistente antigua que podía abrir el menú lateral a media altura.
+- El botón “New video” limpia y enfoca el formulario sin recargar ni mover el scroll de la página.
+- Los paneles administrativos expandibles dejan de ejecutar desplazamientos automáticos inesperados al abrirse.
+- No requiere cambios de base de datos.
+
+## v1.0.106
+
+- Select dropdown options now use normal left alignment throughout the admin.
+- The Videos “New video” action clears the current form without reloading the page and focuses Video title.
+- Added a clean responsive saved-video preview section with organized cards and actions.
+- Upload previews can be cleared safely when starting a new video.
+
 ## v1.0.105
+
 - Rediseña el módulo de Widgets flotantes con el estilo visual de referencia y secciones claras para WhatsApp y NIVO Web Chat.
 - WhatsApp ahora se configura por número (solo dígitos con código de país) y ya no depende de una URL.
 - NIVO usa Código de instalación como opción recomendada; la URL HTTPS queda totalmente opcional y solo se exige cuando se selecciona explícitamente el modo URL embebible.
@@ -764,3 +780,6 @@
 - Instalador: retirada la confirmación visible de recreación de tablas; el comportamiento de reinstalación queda implícito dentro del flujo existente.
 - Los checkbox del instalador mantienen siempre el texto alineado a la derecha del control, incluso cuando el texto ocupa más de una línea.
 - Ajuste compacto sin aumentar la altura general del asistente y conservando el flujo funcional de 4 pasos.
+
+## v1.0.108
+- Mobile: the floating WhatsApp control now renders as a compact circular icon-only launcher, preventing overlap with NIVO and preserving the existing desktop/tablet pill layout.

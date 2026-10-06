@@ -2900,3 +2900,48 @@ body:has(.chat-widget-position-right) .floating-wa{left:18px!important;right:aut
     right:max(12px,env(safe-area-inset-right,0px))!important;
   }
 }
+
+/* ==========================================================
+   v1.0.108 — compact WhatsApp launcher on mobile
+   ========================================================== */
+@media(max-width:650px){
+  .floating-wa{
+    width:54px!important;
+    min-width:54px!important;
+    height:54px!important;
+    min-height:54px!important;
+    padding:0!important;
+    gap:0!important;
+    border-radius:50%!important;
+    display:grid!important;
+    place-items:center!important;
+    overflow:visible!important;
+  }
+
+  .floating-wa .floating-wa-label{
+    display:none!important;
+  }
+
+  .floating-wa .floating-wa-icon{
+    width:27px!important;
+    height:27px!important;
+    min-width:27px!important;
+    margin:0!important;
+  }
+
+  .floating-wa .floating-wa-icon svg{
+    width:27px!important;
+    height:27px!important;
+    min-width:27px!important;
+  }
+}
+
+@media(max-width:380px){
+  .floating-wa{
+    width:52px!important;
+    min-width:52px!important;
+    height:52px!important;
+    min-height:52px!important;
+    padding:0!important;
+  }
+}

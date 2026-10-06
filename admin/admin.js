@@ -294,6 +294,10 @@ window.addEventListener('orientationchange',()=> {
     }
 
     input.addEventListener('change',()=>add(input.files));
+    input.addEventListener('ui:clear-files',()=> {
+      files=[];
+      sync();
+    });
     chooseButton?.addEventListener('click',event=> {
       event.stopPropagation();
       input.click();
@@ -597,13 +601,23 @@ window.addEventListener('orientationchange',()=> {
   });
   render();
 })();
-document.querySelectorAll('[data-toggle-panel]').forEach(btn=>btn.addEventListener('click',()=> {
-  const el=document.getElementById(btn.dataset.togglePanel||'');if(!el)return;el.classList.toggle('is-collapsed');if(!el.classList.contains('is-collapsed'))el.scrollIntoView( {
-    behavior:'smooth',block:'start'
-  }
-  );
-}
-));
+// Expand/collapse editor panels without forcing the page to jump.
+document.querySelectorAll('[data-toggle-panel]').forEach(button => {
+  button.addEventListener('click', () => {
+    const panel = document.getElementById(button.dataset.togglePanel || '');
+    if (!panel) return;
+
+    const willOpen = panel.classList.contains('is-collapsed');
+    panel.classList.toggle('is-collapsed');
+
+    if (!willOpen) return;
+
+    const firstField = panel.querySelector(
+      'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])'
+    );
+    window.setTimeout(() => firstField?.focus({ preventScroll: true }), 0);
+  });
+});
 // Last opened wins across every menu and overlay in the admin header.
 document.querySelectorAll('.admin-header details').forEach(menu=>menu.addEventListener('toggle',()=> {
   if(!menu.open)return;
@@ -1021,47 +1035,67 @@ document.querySelectorAll('.admin-header details').forEach(menu=>menu.addEventLi
   });
 })();
 
-// v1.0.43 · Persist sidebar position reliably across admin navigation.
-(()=>{
-  const sidebar=document.querySelector('[data-sidebar]');
-  if(!sidebar)return;
-  const key='izzyAdminSidebarScrollTop:v2';
-  const save=()=>{
-    try{ localStorage.setItem(key,String(Math.max(0,sidebar.scrollTop||0))); }catch(_e){}
-  };
-  const restore=()=>{
-    try{
-      const saved=Number(localStorage.getItem(key)||0);
-      if(!Number.isFinite(saved)||saved<=0)return false;
-      sidebar.scrollTop=saved;
-      return true;
-    }catch(_e){return false;}
-  };
+// v1.0.107 · Start the sidebar at the top on a fresh admin login, then preserve
+// the user's exact sidebar position while navigating inside the same admin session.
+(() => {
+  const sidebar = document.querySelector('[data-sidebar]');
+  if (!sidebar) return;
 
-  // Re-apply after layout/fonts finish so active states never push the sidebar back to top.
-  const hadSaved=restore();
-  requestAnimationFrame(()=>restore());
-  setTimeout(()=>restore(),80);
-  setTimeout(()=>restore(),260);
+  const key = 'izzyAdminSidebarScrollTop:v3';
 
-  let frame=0;
-  sidebar.addEventListener('scroll',()=>{
-    cancelAnimationFrame(frame);
-    frame=requestAnimationFrame(save);
-  },{passive:true});
-
-  sidebar.querySelectorAll('a[href]').forEach(a=>{
-    a.addEventListener('pointerdown',save,{passive:true});
-    a.addEventListener('click',save);
-  });
-  window.addEventListener('pagehide',save);
-  window.addEventListener('beforeunload',save);
-
-  // On a first visit only, reveal the active entry without changing future remembered positions.
-  if(!hadSaved){
-    const active=sidebar.querySelector('a.active');
-    if(active) setTimeout(()=>active.scrollIntoView({block:'nearest'}),30);
+  // Remove the previous persistent key once so an old localStorage value can never
+  // make a new administrator session start halfway down the menu.
+  try {
+    localStorage.removeItem('izzyAdminSidebarScrollTop:v2');
+  } catch (_error) {
+    // Storage can be disabled by the browser. The menu still works normally.
   }
+
+  const readSavedPosition = () => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw === null) return null;
+
+      const saved = Number(raw);
+      return Number.isFinite(saved) && saved >= 0 ? saved : null;
+    } catch (_error) {
+      return null;
+    }
+  };
+
+  const savePosition = () => {
+    try {
+      sessionStorage.setItem(key, String(Math.max(0, sidebar.scrollTop || 0)));
+    } catch (_error) {
+      // Ignore storage errors without affecting navigation.
+    }
+  };
+
+  const savedPosition = readSavedPosition();
+  const restorePosition = () => {
+    sidebar.scrollTop = savedPosition === null ? 0 : savedPosition;
+  };
+
+  // Restore more than once because fonts and late layout changes can alter the
+  // sidebar height after the first paint. Never auto-scroll the active item.
+  restorePosition();
+  requestAnimationFrame(restorePosition);
+  window.setTimeout(restorePosition, 80);
+  window.setTimeout(restorePosition, 260);
+
+  let frame = 0;
+  sidebar.addEventListener('scroll', () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(savePosition);
+  }, { passive: true });
+
+  sidebar.querySelectorAll('a[href]').forEach(link => {
+    link.addEventListener('pointerdown', savePosition, { passive: true });
+    link.addEventListener('click', savePosition);
+  });
+
+  window.addEventListener('pagehide', savePosition);
+  window.addEventListener('beforeunload', savePosition);
 })();
 
 // v1.0.42 · SEO search preview updates while the user types.

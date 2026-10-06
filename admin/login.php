@@ -221,6 +221,15 @@ endif;
 <script src="../assets/vendor/cms-modal/cmsModal.js"></script>
 <script src="../assets/action-icons.js"></script>
 <script>
+// v1.0.107: every fresh sign-in starts the admin sidebar at the top.
+// Sidebar position is remembered only while navigating inside that admin session.
+try {
+  sessionStorage.removeItem('izzyAdminSidebarScrollTop:v3');
+  localStorage.removeItem('izzyAdminSidebarScrollTop:v2');
+} catch (_error) {
+  // Storage can be unavailable in restricted browser modes.
+}
+
 document.querySelectorAll(".alert.success,.alert.error,.alert.info,.alert.warning").forEach(function(el){
   var t=el.classList.contains("error")?"error":el.classList.contains("warning")?"warning":el.classList.contains("success")?"success":"info";
   if(window.showNotify){showNotify(el.textContent.trim(),t,{title:t==='success'?'Operación completada':'Información'});el.hidden=true;}
