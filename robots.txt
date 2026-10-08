@@ -2,4 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /install/
+Disallow: /config/
+Disallow: /core/
+Disallow: /uploads/backups/
+Disallow: /email-validate.php
+Disallow: /estimate-submit.php
 Sitemap: https://izzycloud.app/sitemap.xml

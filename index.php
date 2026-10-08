@@ -98,6 +98,20 @@ $logoOnDark='assets/izzy/logo-full-light.png';
 $favicon=trim((string)($settings['favicon_path']??''));if($favicon==='')$favicon='assets/izzy/logo-mark.png';
 $seoTitle=trim((string)($settings['seo_title']??'IZZY | Sistema de facturación y gestión empresarial'));
 $seoDesc=trim((string)($settings['seo_description']??'IZZY simplifica facturación, inventario, compras, cuentas por cobrar, recursos humanos y operación de restaurantes.'));
+$seoBaseUrl=trim((string)($settings['website']??'https://izzycloud.app'));
+if($seoBaseUrl==='')$seoBaseUrl='https://izzycloud.app';
+if(!preg_match('~^https?://~i',$seoBaseUrl))$seoBaseUrl='https://'.$seoBaseUrl;
+$seoParts=@parse_url($seoBaseUrl);
+$seoHost=strtolower((string)($seoParts['host']??''));
+if($seoHost==='izzycloud.app' || $seoHost==='www.izzycloud.app')$seoBaseUrl='https://izzycloud.app';
+else $seoBaseUrl=rtrim($seoBaseUrl,'/');
+$canonicalUrl=$seoBaseUrl.'/';
+$seoSocialImage=trim((string)($settings['seo_social_image']??''));
+$seoSocialImageUrl='';
+if($seoSocialImage!==''){
+    if(preg_match('~^https?://~i',$seoSocialImage))$seoSocialImageUrl=$seoSocialImage;
+    else $seoSocialImageUrl=$seoBaseUrl.'/'.ltrim($seoSocialImage,'/');
+}
 $mapEnabled=($settings['service_map_enabled']??'1')==='1';
 $mapQuery=trim((string)($settings['service_map_query']??'San Pedro Sula, Cortés, Honduras'));if($mapQuery==='')$mapQuery='San Pedro Sula, Cortés, Honduras';
 $mapLabel=trim((string)($settings['service_map_label']??'Ubicación y cobertura IZZY'));
@@ -180,7 +194,7 @@ foreach ($landingSections as $sectionKey => $sectionData) {
     $landingSectionActive[$sectionKey] = (int)$sectionData['active'] === 1;
 }
 
-if(($settings['maintenance_mode']??'0')==='1'&&!$adminPreview){http_response_code(503);?><!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>IZZY · Mantenimiento</title><style>body{font-family:system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f4f9fd;color:#082259}.c{text-align:center;background:#fff;padding:40px;border-radius:24px;box-shadow:0 20px 60px #0b396622}.c img{width:140px}.c p{color:#68768d}</style><div class="c"><img src="<?=h($logo)?>"><h1><?=h($settings['maintenance_title']??'Estamos mejorando IZZY')?></h1><p><?=h($settings['maintenance_text']??'Volvemos pronto.')?></p></div></html><?php exit;}
+if(($settings['maintenance_mode']??'0')==='1'&&!$adminPreview){http_response_code(503);header('Retry-After: 3600');header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet',true);?><!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>IZZY · Mantenimiento</title><style>body{font-family:system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f4f9fd;color:#082259}.c{text-align:center;background:#fff;padding:40px;border-radius:24px;box-shadow:0 20px 60px #0b396622}.c img{width:140px}.c p{color:#68768d}</style><div class="c"><img src="<?=h($logo)?>"><h1><?=h($settings['maintenance_title']??'Estamos mejorando IZZY')?></h1><p><?=h($settings['maintenance_text']??'Volvemos pronto.')?></p></div></html><?php exit;}
 if(!$services){$services=[
  ['title'=>'Facturación electrónica con el SAR','details'=>'Emite facturas, tickets y documentos con una operación ágil y centralizada.'],
  ['title'=>'Inventario y bodegas','details'=>'Controla productos, existencias, compras y transferencias entre bodegas.'],
@@ -213,7 +227,21 @@ $primarySolutions = [
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#079bd0">
-<title><?=h($seoTitle)?></title><meta name="description" content="<?=h($seoDesc)?>"><meta name="robots" content="<?=h($settings['seo_robots']??'index,follow')?>"><link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml">
+<title><?=h($seoTitle)?></title>
+<meta name="description" content="<?=h($seoDesc)?>">
+<meta name="robots" content="<?=h($settings['seo_robots']??'index,follow')?>">
+<link rel="canonical" href="<?=h($canonicalUrl)?>">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="<?=h($seoBaseUrl.'/sitemap.xml')?>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="IZZY">
+<meta property="og:title" content="<?=h($seoTitle)?>">
+<meta property="og:description" content="<?=h($seoDesc)?>">
+<meta property="og:url" content="<?=h($canonicalUrl)?>">
+<?php if($seoSocialImageUrl!==''): ?><meta property="og:image" content="<?=h($seoSocialImageUrl)?>"><?php endif; ?>
+<meta name="twitter:card" content="<?=$seoSocialImageUrl!==''?'summary_large_image':'summary'?>">
+<meta name="twitter:title" content="<?=h($seoTitle)?>">
+<meta name="twitter:description" content="<?=h($seoDesc)?>">
+<?php if($seoSocialImageUrl!==''): ?><meta name="twitter:image" content="<?=h($seoSocialImageUrl)?>"><?php endif; ?>
 <?php if(!empty($settings['google_site_verification'])): ?><meta name="google-site-verification" content="<?=h($settings['google_site_verification'])?>"><?php endif; ?>
 <link rel="icon" type="image/png" href="<?=h($favicon ?: 'assets/izzy/logo-mark.png')?>"><link rel="shortcut icon" type="image/png" href="<?=h($favicon ?: 'assets/izzy/logo-mark.png')?>">
 <link rel="stylesheet" href="<?=h(versioned_asset('assets/izzy-site.css','assets/izzy-site.css'))?>">

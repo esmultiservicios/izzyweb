@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 
+// The installer is private application infrastructure and must never be indexed.
+if (!headers_sent()) {
+    header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet', true);
+}
+
 session_start();
 
 // Recargar el instalador siempre inicia una sesión limpia del asistente.

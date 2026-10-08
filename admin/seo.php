@@ -6,6 +6,13 @@ function seo_public_base_url(array $settings): string {
     $raw=trim((string)($settings['website']??'https://izzycloud.app'));
     if($raw==='')$raw='https://izzycloud.app';
     if(!preg_match('~^https?://~i',$raw))$raw='https://'.$raw;
+
+    $parts=@parse_url($raw);
+    $host=strtolower((string)($parts['host']??''));
+    if($host==='izzycloud.app' || $host==='www.izzycloud.app'){
+        return 'https://izzycloud.app';
+    }
+
     return rtrim($raw,'/');
 }
 function seo_write_public_file(string $name,string $contents): void {
@@ -30,6 +37,11 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
                 $robots.="Allow: /\n";
                 $robots.="Disallow: /admin/\n";
                 $robots.="Disallow: /install/\n";
+                $robots.="Disallow: /config/\n";
+                $robots.="Disallow: /core/\n";
+                $robots.="Disallow: /uploads/backups/\n";
+                $robots.="Disallow: /email-validate.php\n";
+                $robots.="Disallow: /estimate-submit.php\n";
                 $robots.="Sitemap: ".$base."/sitemap.xml\n";
                 seo_write_public_file('robots.txt',$robots);
                 log_activity('seo_robots_generate','Generated robots.txt',['url'=>$base.'/robots.txt']);

@@ -24,6 +24,11 @@ session_set_cookie_params([
 session_start();
 
 require_once __DIR__ . '/../config/bootstrap.php';
+
+// Private administration must not be indexed or cached by search engines.
+if (!headers_sent()) {
+    header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet', true);
+}
 if (!config_ready()) {
     header('Location: ../install/');
     exit;

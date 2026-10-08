@@ -1,3 +1,27 @@
+## v1.0.110
+- Refuerza la compatibilidad de `sitemap.xml` con Google Search Console usando un archivo XML físico, válido y no vacío como fuente principal/fallback.
+- Mantiene `https://izzycloud.app/` como URL canónica única dentro del sitemap y normaliza `www.izzycloud.app` hacia el dominio canónico al generar metadatos SEO.
+- Sirve `sitemap.xml` explícitamente como `application/xml` y `robots.txt` como `text/plain` desde `.htaccess`.
+- Mantiene `robots.txt` sincronizado con el generador SEO e incluye el sitemap canónico sin bloquear la página pública incluida.
+- No agrega `sitemap.php` ni depende de `RewriteRule`; Google puede leer directamente el archivo físico `/sitemap.xml`.
+- Amplía las exclusiones de rastreo para configuración, núcleo, respaldos y endpoints técnicos sin incluir superficies privadas en el sitemap.
+- No requiere cambios de base de datos.
+
+## v1.0.109
+
+- Mantiene `robots.txt` y `sitemap.xml` únicamente en la raíz pública real del proyecto, sin duplicados bajo `/public`.
+- Agrega URL canónica absoluta a la portada y metadatos Open Graph/Twitter Card.
+- La imagen social configurada desde SEO Manager ahora se publica realmente en los metadatos sociales.
+- Refuerza `admin/` e `install/` con `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet`.
+- Amplía `robots.txt` para excluir superficies internas y endpoints técnicos del rastreo.
+- Endurece `.htaccess` contra acceso HTTP a `.git`, SQL, documentación interna y archivos de despliegue.
+- Actualiza el sitemap raíz con `lastmod` y conserva `https://izzycloud.app/` como URL canónica.
+- No requiere cambios de base de datos.
+
+## v1.0.108
+
+- Mobile: the floating WhatsApp control now renders as a compact circular icon-only launcher, preventing overlap with NIVO and preserving the existing desktop/tablet pill layout.
+
 ## v1.0.107
 
 - El menú lateral inicia arriba al entrar a una sesión administrativa nueva y conserva la posición exacta mientras se navega entre módulos.
@@ -780,6 +804,3 @@
 - Instalador: retirada la confirmación visible de recreación de tablas; el comportamiento de reinstalación queda implícito dentro del flujo existente.
 - Los checkbox del instalador mantienen siempre el texto alineado a la derecha del control, incluso cuando el texto ocupa más de una línea.
 - Ajuste compacto sin aumentar la altura general del asistente y conservando el flujo funcional de 4 pasos.
-
-## v1.0.108
-- Mobile: the floating WhatsApp control now renders as a compact circular icon-only launcher, preventing overlap with NIVO and preserving the existing desktop/tablet pill layout.

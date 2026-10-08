@@ -1,5 +1,26 @@
 Options -Indexes
 DirectoryIndex index.php
-<FilesMatch "^(database\.sql|database-update\.sql|README\.txt|\.gitignore)$">
+
+# Serve the physical SEO discovery files with explicit, crawler-friendly MIME types.
+<IfModule mod_mime.c>
+  AddType application/xml .xml
+  AddType text/plain .txt
+</IfModule>
+
+<Files "sitemap.xml">
+  ForceType application/xml
+</Files>
+
+<Files "robots.txt">
+  ForceType text/plain
+</Files>
+
+# Protect repository metadata and internal project files from direct HTTP access.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\.git(?:/|$) - [F,L,NC]
+</IfModule>
+
+<FilesMatch "^(?:database\.sql|database-update\.sql|schema\.sql|README(?:-IZZY)?\.md|README\.txt|CHANGELOG\.md|CORE-BRANCH-GUIDE\.md|CPANEL-DEPLOY\.md|UI-STANDARD\.md|LOCAL-UI-LIBRARIES\.txt|deploy-cpanel\.sh|\.cpanel\.yml|\.gitattributes|\.gitignore)$">
   Require all denied
 </FilesMatch>
