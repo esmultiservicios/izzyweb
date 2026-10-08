@@ -65,3 +65,12 @@ git update-index --no-skip-worktree .htaccess
 ```
 
 No usar `git reset --hard` ni `git clean -fd` sobre producción sin revisar primero los archivos afectados.
+
+## v1.0.112 - Sincronización estable de `.htaccess`
+
+- `.htaccess` del repositorio es la fuente de verdad e incluye permanentemente el handler `ea-php82` de producción.
+- `deploy-cpanel.sh` ya no conserva una copia antigua del `.htaccess` del servidor.
+- Si el repositorio cPanel y el DocumentRoot son la misma ruta, el deploy detecta ese modo y evita copiar archivos sobre sí mismos; `Update from Remote` ya realizó la actualización.
+- Si en el futuro el repositorio y el DocumentRoot son rutas distintas, `.htaccess` se copia y se valida byte a byte al finalizar.
+- No usar `skip-worktree` para `.htaccess`; ocultaría diferencias reales.
+- Si se cambia la versión de PHP en MultiPHP Manager, debe actualizarse el handler versionado en `.htaccess` en el mismo commit.

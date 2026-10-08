@@ -1,3 +1,12 @@
+## v1.0.112
+- Endurece el despliegue de cPanel para que `.htaccess` versionado sea la fuente de verdad y se sincronice en cada deploy cuando repositorio y DocumentRoot son rutas diferentes.
+- Detecta de forma segura cuando el repositorio ya vive directamente en el DocumentRoot y evita copiar archivos/directorios sobre sí mismos.
+- Valida antes del deploy que `.htaccess` incluya el handler `ea-php82`, evitando que MultiPHP lo agregue después como cambio local.
+- Elimina la lógica antigua que preservaba silenciosamente un `.htaccess` viejo de producción.
+- Evita reescrituras de archivos idénticos y valida que el `.htaccess` desplegado sea idéntico al versionado.
+- Conserva configuración sensible y uploads de producción sin sobrescribir secretos ni contenido persistente.
+- No requiere cambios de base de datos.
+
 ## v1.0.111
 - Cambia Cloudflare Turnstile del formulario público de IZZY a renderizado explícito con `appearance: interaction-only`, evitando el widget visible durante el uso normal.
 - Mantiene la validación server-side de Turnstile y solo muestra interacción cuando Cloudflare realmente la requiere.
