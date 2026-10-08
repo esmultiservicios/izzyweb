@@ -695,7 +695,14 @@ $primarySolutions = [
                         </div>
 
                         <input type="hidden" name="referral" value="Sitio web IZZY">
-                        <?php if($turnstileReady): ?><div class="span-2 cf-turnstile" data-sitekey="<?=h($anti['turnstile_site_key'])?>" data-theme="light"></div><?php elseif($anti['turnstile_enabled']): ?><div class="span-2 form-note">La verificación Cloudflare Turnstile está activada pero falta completar las llaves en el administrador.</div><?php endif; ?>
+                        <?php if($turnstileReady): ?>
+                            <div class="span-2 turnstile-shell" data-turnstile-wrap>
+                                <div class="turnstile-widget"
+                                     data-turnstile-container
+                                     data-sitekey="<?=h($anti['turnstile_site_key'])?>"
+                                     data-language="es"></div>
+                            </div>
+                        <?php elseif($anti['turnstile_enabled']): ?><div class="span-2 form-note">La verificación Cloudflare Turnstile está activada pero falta completar las llaves en el administrador.</div><?php endif; ?>
                     </div>
                     <div class="form-actions">
                         <button class="btn primary" type="submit" <?=$anti['turnstile_enabled']&&!$turnstileReady?'disabled':''?>>Enviar solicitud</button>
@@ -755,12 +762,12 @@ $primarySolutions = [
 <?php if($socialLinks): ?><nav class="social-dock floating-right" aria-label="Redes sociales"><?php foreach($socialLinks as $link): ?><a href="<?=h($link['url'])?>" target="_blank" rel="noopener" aria-label="<?=h($link['label'])?>" class="social-<?=h($link['platform'])?>"><span class="social-svg"><?=$link['icon']?></span><span class="dock-label"><?=h($link['label'])?></span></a><?php endforeach; ?></nav><?php endif; ?>
 
 <div class="lightbox" data-lightbox aria-hidden="true"><div class="lightbox-inner"><button class="lightbox-close" type="button" aria-label="Cerrar" data-no-action-icon>×</button><img alt="Vista ampliada"></div></div><div id="toast" class="toast" role="status" aria-live="polite"></div>
-<?php if($turnstileReady): ?><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><?php endif; ?>
 <script src="assets/vendor/jquery/jquery.min.js"></script>
 <script src="assets/vendor/select2/select2.local.js"></script>
 <script src="assets/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="assets/vendor/show-notify/showNotify.js"></script>
 <script src="assets/ui-standards.js"></script>
 <script src="<?=h(versioned_asset('assets/izzy-site.js','assets/izzy-site.js'))?>"></script>
+<?php if($turnstileReady): ?><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=izzyTurnstileReady" async defer></script><?php endif; ?>
 <script src="assets/action-icons.js"></script>
 </body></html>

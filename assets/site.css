@@ -815,8 +815,14 @@ img {
 }
 .turnstile-shell {
     width:100%;
-    min-height:2px;
-    overflow:hidden
+    min-height:0;
+    margin:0;
+    padding:0;
+    overflow:visible
+}
+.turnstile-widget {
+    width:100%;
+    min-height:0
 }
 .turnstile-shell>div,
 .turnstile-shell iframe {

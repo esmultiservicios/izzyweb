@@ -1,3 +1,11 @@
+## v1.0.111
+- Cambia Cloudflare Turnstile del formulario público de IZZY a renderizado explícito con `appearance: interaction-only`, evitando el widget visible durante el uso normal.
+- Mantiene la validación server-side de Turnstile y solo muestra interacción cuando Cloudflare realmente la requiere.
+- Elimina la clase de auto-render `cf-turnstile` que provocaba que Cloudflare mostrara el bloque visible `Success!`.
+- Mantiene el formulario sin espacio reservado ni texto técnico de Cloudflare cuando la verificación ocurre en segundo plano.
+- Agrega permanentemente el handler `ea-php82` al `.htaccess` versionado para evitar que cPanel vuelva a ensuciar el repositorio al insertarlo automáticamente.
+- No requiere cambios de base de datos.
+
 ## v1.0.110
 - Refuerza la compatibilidad de `sitemap.xml` con Google Search Console usando un archivo XML físico, válido y no vacío como fuente principal/fallback.
 - Mantiene `https://izzycloud.app/` como URL canónica única dentro del sitemap y normaliza `www.izzycloud.app` hacia el dominio canónico al generar metadatos SEO.

@@ -120,6 +120,34 @@
  const form=document.getElementById('estimateForm'),toast=document.getElementById('toast');
  const show=(m,type='info')=>{if(window.showNotify){window.showNotify(m,type);return}if(!toast)return;toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),4800)};
 
+ const turnstileContainer=form?.querySelector('[data-turnstile-container]');
+ let turnstileWidgetId=null;
+ const initTurnstile=()=>{
+   if(!turnstileContainer||turnstileWidgetId!==null||!window.turnstile||typeof window.turnstile.render!=='function')return;
+   const sitekey=turnstileContainer.dataset.sitekey||'';
+   if(!sitekey)return;
+   try{
+     turnstileWidgetId=window.turnstile.render(turnstileContainer,{
+       sitekey,
+       action:'contact_inquiry',
+       appearance:'interaction-only',
+       theme:'auto',
+       size:'flexible',
+       language:turnstileContainer.dataset.language||'auto',
+       'refresh-expired':'auto',
+       'error-callback':()=>show('No pudimos verificar el envío. Intenta nuevamente.','warning'),
+       'timeout-callback':()=>{if(turnstileWidgetId!==null)window.turnstile?.reset?.(turnstileWidgetId)}
+     });
+   }catch(_){}
+ };
+ const resetTurnstile=()=>{
+   if(turnstileWidgetId!==null&&window.turnstile&&typeof window.turnstile.reset==='function'){
+     try{window.turnstile.reset(turnstileWidgetId)}catch(_){}
+   }
+ };
+ window.izzyTurnstileReady=initTurnstile;
+ if(turnstileContainer&&window.turnstile)initTurnstile();
+
  const emailField=form?.querySelector('[data-email-validation-field]');
  const emailInput=emailField?.querySelector('[data-email-input]');
  const emailState=emailField?.querySelector('[data-email-state]');
@@ -309,7 +337,7 @@
      }
      show(j.message||'Solicitud recibida. Te contactaremos pronto.','success');
      form.reset();
-     window.turnstile&&window.turnstile.reset?.();
+     resetTurnstile();
    }catch(err){
      if(err&&err.emailResult){
        const result=err.emailResult;
